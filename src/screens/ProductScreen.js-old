@@ -1,0 +1,566 @@
+import React, { useState, useEffect} from 'react';
+import { View, StyleSheet, ScrollView, Alert } from 'react-native';
+import { TextInput, Text, IconButton, Card, Button} from 'react-native-paper';
+
+import { pickImage, takePhoto } from '../utils/CameraFunctions';
+import { fetchNamesFromDB, fetchCategoriesFromDB, fetchLocationsFromDB, saveProductInDB, fetchSingleProductFromDB, fetchProductByCodefromDB } from '../dbQuerys/newProductDB';
+import { validateName, validateBarcode, validateProductQty, validateDescription, validateDateForSQLite, dateToSQLite} from "../utils/ValidateFunctions"
+import PaperAutocomplete from '../components/PaperAutocomplete';
+import { useNavigation } from '@react-navigation/native';
+import { useRoute } from '@react-navigation/native';
+import ScannerFrame from '../components/ScannerComponent';
+import { useScanner } from '../hooks/useScanner';
+import { useDatePicker } from '../hooks/useDatePicker';
+import { DatePickerComponent } from '../components/DatePickerComponent';
+
+export default function ProductScreen() {
+
+  const navigation = useNavigation();
+  const { onReadCode, barCodeValue, setBarCoreValue } = useScanner();
+  const [scannerVisible, setScannerVisible] = useState(false);
+  const route = useRoute();
+  
+
+  const { modalOpen, setModalOpen, expiryDate, onConfirm, setExpiryDate } = useDatePicker();
+
+//arrays from db for autocomplete
+  const [nazwaList, setNazwaList] = useState([{p_name: ""}]);
+  const [categoriesList, setCategoriesList] = useState([{p_category: ""}]);
+  const [locationsList, setLocationsList] = useState([{p_location: ""}]);
+
+  //dane w formularzu
+  const [id, setId] = useState(null);
+  const [pname, setPName] = useState("");
+  const [bcode, setBCode] = useState("");
+  const [category_value, setCategory_value] = useState("");
+  const [productqty, setProductQty] = useState("1");
+  const [description, setDescription] = useState("");
+
+  const [imageUri, setImageUri] = useState(null);
+  const [location, setLocation] = useState(null);
+  const [locationDisabled, setLocationDisabled] = useState(false);
+
+
+  const [dateCreated, setDateCreated] = useState(new Date());
+
+
+  let itemId = '';
+  let location_id = '';
+ 
+
+  if(route.params && route.params.itemId) {
+    itemId = route.params.itemId;
+    location_id = route.params.location_id;
+
+  }
+
+  // set barcode value on scan
+
+  useEffect(()=>{
+    setBCode(barCodeValue);
+
+    fetchProductByCodefromDB(barCodeValue)
+    .then(result => { 
+  
+    if(result.product) {
+      console.log("znaleziono produkt po skanowaniu", result.product);
+      const foundItem = result.product;
+      populateForm(foundItem);
+
+    } else if (!result.product) {
+      console.log("NIE ZNALEZIONO TAKIEGO KODU");
+    }
+    })
+    .catch(err=> console.log("DB Error", err));
+  },[barCodeValue]);
+
+  //fetch initial info from DB
+
+  useEffect(() => {
+    fetchNamesFromDB()
+    .then(result => { setNazwaList(result)
+    console.log("Nazwa list", nazwaList);
+    })
+    .catch(err=> console.error("DB Error", err));
+    
+  },[]);
+
+  useEffect(() => {
+    fetchCategoriesFromDB()
+    .then(result => { setCategoriesList(result);
+     console.log(result);
+     console.log("Categories list", categoriesList);
+    })
+    .catch(err=> console.error("DB Error", err));
+    
+  },[]);
+
+  useEffect(() => {
+    fetchLocationsFromDB()
+    .then(result => { setLocationsList(result);
+     console.log("location fetched from DB", result);
+    console.log("Locations list", locationsList);
+    })
+    .catch(err=> console.error("DB Error", err));
+    console.log('LOCATIONS LIST', locationsList);
+  },[]);
+
+  //this fires on edit product
+  useEffect(()=> {
+      if(itemId === '' || itemId === null) {
+        return;
+      }
+      
+      console.log('ITEM ID', itemId, location_id);
+      
+      fetchSingleProductFromDB(itemId, location_id)
+      .then(result => {
+       
+        const productData = result[0];
+        console.log("product data", productData);
+      populateForm(productData);
+
+      })
+      .catch(err=> console.error("DB Error", err))
+      
+
+  },[itemId]);
+
+
+
+const handleSelectionCategory = (option) => {
+    setCategory_value(option.p_category);
+    console.log('Selected:', option.label);
+  };
+
+  const handleTextChangeCategory = (text) => {
+    setCategory_value(text);
+    console.log('User entered:', text);
+  };
+
+  const handleSelectionName = (option) => {
+    setPName(option.p_name);
+    console.log('Selected:', option.p_name);
+  };
+
+  const handleTextChangeName = (text) => {
+    setPName(text);
+    console.log('User entered:', text);
+  };
+
+    const handleSelectionLocation = (option) => {
+    setLocation(option.loc_name);
+    console.log('Selected:', option.label);
+  };
+
+  const handleTextChangeLocation = (text) => {
+    setLocation(text);
+    console.log('User entered:', text);
+  };
+
+
+  const populateForm = (productData) => {
+        setId(productData.product_id);
+        console.log("id to populate", productData.product_id);
+        setPName(productData.p_name);
+        setCategory_value(productData.p_category);
+        setBCode(productData.p_code);
+        setProductQty(String(productData.location_qty));
+        setDescription(productData.p_desc);
+        setExpiryDate(new Date(productData.expiry_date));
+        setLocation(productData.location_name);
+        setLocationDisabled(true);
+        setDateCreated(new Date(productData.p_date_created));
+        
+        setImageUri(productData.p_photo);
+  }
+
+  const saveProduct = () => {
+    const nameIsValid = validateName(pname);
+          if(!nameIsValid){ 
+            Alert.alert("Nazwa 1-20 znaków");
+          return;
+          } ;
+    const barcodeIsValid = validateBarcode(bcode);
+          if(!barcodeIsValid){ 
+            Alert.alert("Nieprawidłowy kod") 
+          return;
+          } ;
+    const categoryIsValid = validateName(category_value);
+          if(!categoryIsValid){ Alert.alert("Wybierz jedną z kategori lub dowaj nową");
+            return;
+           } ;
+    const locationIsValid = validateName(location);
+          if(!locationIsValid){ Alert.alert("Wybierz jedną z lokalizacji lub dodaj nową");
+            return;
+           } ;
+    const qtyIsValid = validateProductQty(productqty);
+          if(!qtyIsValid){ 
+            Alert.alert("Liczba produktów musi być liczbą dodatnią całkowitą");
+              return;
+           } ;
+    const descIsValid = validateDescription(description);
+          if(!descIsValid){ 
+            Alert.alert("Opis 1 - 200 znaków.");
+          return;
+          } ;
+    const expiryDateIsValid = validateDateForSQLite(expiryDate);
+          if(!expiryDateIsValid){
+             Alert.alert("Data ważności nie prawidłowa");
+            return;
+            } ;
+ 
+
+    if(nameIsValid && barcodeIsValid && categoryIsValid && qtyIsValid && descIsValid && expiryDateIsValid) {
+        const expDate = dateToSQLite(expiryDate);
+        const dCreated = dateToSQLite(dateCreated);
+      
+
+      const newProductData = {
+        id: id || null,
+        pname,
+        category_value,
+        bcode,
+        description,
+        productqty,
+        expDate,
+        location,
+        dCreated,
+        imgUri: imageUri || '',
+        location_id: location_id,
+
+      };
+        saveProductInDB(newProductData)
+        .then(insertedId => {
+          console.log(`Product inserted succesfuly with ID: ${insertedId}`);
+       
+          navigation.navigate('Moj magazyn');
+        })
+        .catch(error => {
+          Alert.alert("Operacja nie została wykonana:", error);
+        });
+
+        } 
+
+    
+
+  }
+
+
+
+
+
+
+
+  const changeProductQty = (param) => {
+    const tempNum = Number(productqty);
+    
+    switch (param) {
+        case 'inc':
+            setProductQty(String(tempNum + 1));
+          break;
+
+        case 'dec':
+            if(tempNum > 0) {
+            setProductQty(String(tempNum - 1));
+            };
+          break;
+    }
+      
+
+  };
+
+
+
+
+  return (
+    <ScrollView>
+      <DatePickerComponent
+          locale="pl"
+          mode="single"
+          visible={modalOpen}
+          onDismiss={() => setModalOpen(false)}
+          date={expiryDate || new Date()} 
+          onConfirm={onConfirm}           
+        />
+    <View style={styles.container}>
+              <View style={styles.onelinewrapper}>
+                      
+              <View style={[styles.dropmenu, {marginRight: 3, flex: 5}]}>
+                <PaperAutocomplete 
+                    label="Nazwa" 
+                    options={nazwaList} 
+                    keyName='p_name'
+                    mode="flat"
+                    onSelect={handleSelectionName}
+                    onChangeText={handleTextChangeName}
+                    value={pname}
+                    error={!validateName(pname)}
+                />
+
+            </View>
+                    
+
+                  
+            <View style={styles.dropmenu}>
+                
+                <PaperAutocomplete 
+                    label="Kategoria" 
+                    options={categoriesList} 
+                    keyName="p_category"
+                    mode="flat"
+                    onSelect={handleSelectionCategory}
+                    onChangeText={handleTextChangeCategory}
+                    value={category_value}
+                    error={!validateName(category_value)}
+                />
+
+            </View>
+    
+
+              </View>
+              <View style={styles.onelinewrapper}>
+                     <TextInput
+                        label="Kod produktu"
+                        value={bcode}
+                        onChangeText={text => setBCode(text)}
+                        onEndEditing={()=>setBarCoreValue(bcode)}
+                        style={styles.nazwainput}
+                        error={!validateBarcode(bcode)}
+                        />
+                        <IconButton 
+                        mode="contained"
+                        size={40}
+                        style={styles.iconbuttonstyle}
+                        icon="barcode-scan"
+                        onPress={() => setScannerVisible(!scannerVisible)}
+                        />
+              </View>
+                {/*SCANNER WINDOW */}
+              {scannerVisible &&
+
+              <View style={styles.onelinewrapper}>
+                        <ScannerFrame onBarcodeRead={onReadCode} />
+              </View>
+              }
+
+              <View style={styles.onelinewrapper}>
+                <TextInput
+                        label="Ilość"
+                        value={productqty}
+                        onChangeText={text => {
+                          if(Number(text) < 0) {
+                            setProductQty("0");
+                          } else if(!Number(text)) {
+                             setProductQty(""); 
+                          } else {
+                            setProductQty(text);
+                          }
+                          
+                        }}
+                        style={styles.nazwainput}
+                        error={!validateProductQty(productqty)}
+                        />
+                        
+                        <IconButton 
+                        mode="contained"
+                        size={40}
+                        style={styles.iconbuttonstyle}
+                        icon="minus"
+                        onPress={() => changeProductQty('dec')}
+                        />
+                        <IconButton 
+                        mode="contained"
+                        size={40}
+                        style={styles.iconbuttonstyle}
+                        icon="plus"
+                        onPress={() => changeProductQty('inc')}
+
+                        />
+                       
+              </View>
+
+            
+              
+     
+      <TextInput
+      label="Opis"
+      value={description}
+      onChangeText={text => setDescription(text)}
+      multiline
+      numberOfLines={3}
+      style={[styles.textinput, { height: 90 }]}
+      error={!validateDescription(description)}
+
+      />
+      
+      {/* <View style={styles.onelinewrapper}><Text>ItemId {itemId} IDSCANNER{idFromScanner} IDSAVE{id}</Text> */}
+</View>
+                      <View style={styles.onelinewrapper}>
+                        <TextInput
+                        label="Data ważności"
+                        value={expiryDate.toLocaleDateString()}
+                        onFocus={() => setModalOpen(true)}
+                        style={styles.nazwainput}
+                        showSoftInputOnFocus={false}
+                        error={!validateDateForSQLite(expiryDate)}
+                      
+                        />
+                        <View style={styles.dropmenu}>
+                <PaperAutocomplete 
+                    label="Lokalizacja" 
+                    options={locationsList} 
+                    keyName="loc_name"
+                    mode="flat"
+                    onSelect={handleSelectionLocation}
+                    onChangeText={handleTextChangeLocation}
+                    value={location}
+                    error={!validateName(location)}
+                    disabled={locationDisabled}
+                />
+
+            </View>
+                      
+                      </View>
+
+
+
+                      
+                        <View style={styles.onelinewrapper}>
+                              <TextInput
+                              label="Data utworzenia"
+                              value={dateCreated ? dateCreated.toLocaleDateString() : ""}
+                              //onChange={}
+                              style={[styles.nazwainput, {fontSize: 13}]}
+                              showSoftInputOnFocus={false}
+                              disabled={true}
+                              // error={!validateDateForSQLite(dateCreated)}
+                            />
+                          
+                            
+                        </View>
+                    
+
+                    
+                 
+                      <View style={styles.pictureView}>
+                              {!imageUri && <View style={[styles.onelinewrapper, {alignSelf: "center"}]}>
+                                               
+                                                      <Card.Content style={{ alignItems: "center", padding: 20, justifyContent:"space-around" }}>
+                                                            <IconButton icon="camera-off" size={100} mode='contained' onPress={() => pickImage(setImageUri)}/>
+                                                            <Text>Wybierz zdjęcie</Text>
+                                                      </Card.Content> 
+                                                
+                                                
+                                                      <Card.Content style={{ alignItems: "center", padding: 20, justifyContent:"space-around" }}>
+                                                            <IconButton icon="camera" size={100} mode='contained' onPress={() => takePhoto(setImageUri)}/>
+                                                            <Text>Zrób zdjęcie</Text>
+                                                      </Card.Content>
+                                                     
+                                              </View>
+                                            }
+                              {imageUri && <Card.Cover source={{ uri: imageUri }} />}
+
+                        {imageUri &&
+                        <IconButton 
+                        mode="contained"
+                        size={40}
+                        style={styles.deleteicon}
+                        icon="trash-can"
+                        onPress={() => setImageUri(null)}
+
+                        /> }
+                      </View>
+
+      
+                 
+                      <Button
+                      mode="contained"
+                      style={styles.savebutton}
+                      labelStyle={{fontSize:25}}
+                      onPress={saveProduct}
+                      >ZAPISZ</Button>
+                
+                    
+  
+    </ScrollView>
+    
+  );
+}
+
+const styles = StyleSheet.create({
+  container: {
+    dispay: 'flex',
+    justifyContent: 'flex-start',
+    alignItems: 'flex-start',
+    flexDirection: 'column',
+    paddingHorizontal:10,
+    
+  
+    },
+  textinput: { fontSize: 20,
+    width:'100%',
+    marginTop: 10,
+
+
+   },
+
+
+   onelinewrapper: {
+    display:'flex',
+    flexDirection: 'row',
+   },
+    nazwainput: { fontSize: 20,
+    flex: 6,
+    marginTop: 10,
+    marginRight: 5,
+   },
+    dropmenu: {
+    flex: 4,
+    marginTop: 10,
+   },
+   iconbuttonstyle: {
+    borderRadius: 10,
+    marginTop: 10,
+   },
+
+   touchOpa: {
+    flex:1,
+   },
+ 
+   pictureView: {
+    display: 'flex',
+    alignSelf:"center",
+    minWidth:330,
+    maxWidth:350,
+    minHeight:210,
+    maxHeight:233,
+    //borderWidth:1,
+    marginTop:10,
+    marginBottom: 10,
+   
+   
+   },
+    deleteicon: {
+      position:'absolute',
+      borderRadius: 10,
+      bottom: 0,
+      right: 0,
+      margin: 0,
+      zIndex:100,
+
+   },
+
+   savebutton: {
+    width: '90%',
+    height: 50,
+    alignSelf: 'center',
+    borderRadius: 10,
+    
+    
+   
+   },
+
+
+
+});

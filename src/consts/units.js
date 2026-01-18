@@ -1,0 +1,1 @@
+export const allUnits = ['szt.', 'kg', 'g', 'l'];
