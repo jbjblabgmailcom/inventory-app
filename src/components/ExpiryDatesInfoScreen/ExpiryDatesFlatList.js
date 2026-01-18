@@ -1,14 +1,17 @@
 import React, { useCallback, memo } from "react";
-import {View, StyleSheet, FlatList } from "react-native";
-import { Text, ActivityIndicator, Surface, useTheme } from "react-native-paper";
+import {View, StyleSheet, FlatList, TouchableOpacity } from "react-native";
+import { Text, ActivityIndicator, Surface, useTheme} from "react-native-paper";
 import {
   dateFromSQLiteDateOnly,
   numberOfDaysToDate,
 } from "../../utils/ValidateFunctions";
+import { useNavigation } from "@react-navigation/native";
 
 
 
 const ExpiryDatesList = ({ expiryDates, loadMore, loading, filters, units}) => {
+
+
  
   const renderItem = useCallback(
     ({ item }) => <ExpiryDatesItem t={item} units={units} />,
@@ -16,6 +19,7 @@ const ExpiryDatesList = ({ expiryDates, loadMore, loading, filters, units}) => {
   );
 
   return (
+    
     <FlatList
       showsVerticalScrollIndicator={false}
       showsHorizontalScrollIndicator={false}
@@ -40,9 +44,15 @@ const ExpiryDatesList = ({ expiryDates, loadMore, loading, filters, units}) => {
 };
 
 const ExpiryDatesItem = memo(({ t, units }) => {
+  const navigation = useNavigation();
   const theme = useTheme();
   const days = numberOfDaysToDate(dateFromSQLiteDateOnly(t.expiry_date));
   return (
+
+    <TouchableOpacity 
+   
+    onPress={() => navigation.navigate("Moj magazyn", {location_name: t.location_name})}
+    >
     <Surface
       elevation={0}
       style={[
@@ -53,23 +63,34 @@ const ExpiryDatesItem = memo(({ t, units }) => {
         days > 30 && { backgroundColor: theme.colors.onTertiary },
       ]}
     >
+      {t.p_name && 
       <View style={styles.row}>
         <Text variant="labelLarge">
-          {t.expiry_date && dateFromSQLiteDateOnly(t.expiry_date)}
+          Produkt: {t.p_name}
         </Text>
 
-        <Text variant="bodyLarge">{t.expiry_qty} {units}</Text>
+        <Text variant="bodyLarge">Kod:{t.p_code}</Text>
       </View>
-
+      }
       <View style={styles.row}>
-        <Text variant="labelMedium">Lok.: {t.location_name}</Text>
+        <Text variant="labelLarge">
+          Data: {t.expiry_date && dateFromSQLiteDateOnly(t.expiry_date)}
+        </Text>
         <Text variant="labelLarge">
           {days > 0 ? "Dni do końca: " : "Dni po terminie: "}
 
           {days}
         </Text>
+
+       
+      </View>
+
+      <View style={styles.row}>
+        <Text variant="labelMedium">Lok.: {t.location_name}</Text>
+        <Text variant="bodyLarge">Ilość: {t.expiry_qty} {units && units}{t.p_units && t.p_units}</Text> 
       </View>
     </Surface>
+    </TouchableOpacity>
   );
 });
   

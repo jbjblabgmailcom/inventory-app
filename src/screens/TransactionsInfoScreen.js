@@ -147,7 +147,7 @@ useEffect(() => {
         </Modal>
       </Portal>
       <View style={styles.container}>
-        <Card mode="contained" style={styles.card}>
+        <Card mode="outlined" style={[styles.card, {backgroundColor: theme.colors.background2}]}>
           <Card.Content>
             <Text variant="titleLarge">Kod: {pCode}</Text>
             <Text variant="titleMedium">Produkt: {pName}</Text>
@@ -163,7 +163,9 @@ useEffect(() => {
         <View
           style={[
             styles.transactionCard,
-            { backgroundColor: theme.colors.elevation.level2 },
+             {backgroundColor: theme.colors.background2,
+              borderColor: theme.colors.elevation.level4
+            },
           ]}
         >
           <View style={styles.onelinewrapperSpacedApart}>
@@ -250,22 +252,22 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     padding: 5,
-    margin: 5,
+   
     gap: 5,
   },
   card: {
     borderRadius: 12,
-    marginHorizontal: 5,
+ 
     
   },
   transactionCard: {
     flex: 1,
     borderRadius: 12,
-    marginHorizontal: 5,
+ 
     overflow: "hidden",
     paddingHorizontal: 10,
     paddingBottom: 20,
-
+    borderWidth: 1,
   },
   cardContentFull: {
     flex: 1,

@@ -6,7 +6,7 @@ import React, {
   useMemo,
 } from "react";
 import { useRoute } from "@react-navigation/native";
-import { View, StyleSheet } from "react-native";
+import { View, StyleSheet, Alert } from "react-native";
 import {
   Portal,
   Modal,
@@ -183,9 +183,23 @@ const LocationsScreen = () => {
     }
   }, [locationsList]);
 
-  useEffect(()=>{
-    console.log(inputValue);
-  },[inputValue]);
+useEffect(() => {
+  const selectedName = route.params?.location_name;
+
+  if (selectedName) {
+    const matchedLocation = locationsList.find(
+      (loc) => loc.loc_name === selectedName
+    );
+
+    if (matchedLocation) {
+
+      setLocationGlobal(matchedLocation);
+    }
+  }
+}, [route.params?.location_name, locationsList]); 
+
+
+
   
 
   useLayoutEffect(() => {
@@ -249,11 +263,7 @@ const LocationsScreen = () => {
   }, [barCodeValue]);
 
 
-  useEffect(() => {
-    if (route.params && route.params?.location_name_id) {
-      setLocationGlobal(route.params);
-    }
-  }, [route.params?.location_name_id]);
+
 
 
     useEffect(() => {

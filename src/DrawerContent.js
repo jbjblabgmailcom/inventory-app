@@ -36,6 +36,15 @@ export function CustomDrawer(props) {
       icon="playlist-edit"
         onPress={() => navigation.navigate("Produkty, edycja.")}
       />
+      <Drawer.Item
+        label="Terminy przydatności"
+      icon="calendar-alert-outline"
+         onPress={() =>
+                navigation.navigate("Terminy przydatności - raport")
+              }
+      />
+
+     
  
       <Drawer.Item
         label="DB View"

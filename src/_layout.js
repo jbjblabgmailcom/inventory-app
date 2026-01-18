@@ -15,6 +15,7 @@ import DefineNewProductScreen from './screens/DefineNewProduct';
 import ProductInfoScreen from './screens/ProductInfoScreen';
 import TransactionsInfoScreen from './screens/TransactionsInfoScreen';
 import ExpiryDatesInfoScreen from './screens/ExpiryDatesInfoScreen';
+import ExpiryDatesAllScreen from './screens/ExpiryDatesAllScreen';
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { createDrawerNavigator} from "@react-navigation/drawer";
 import { CustomDrawer } from './DrawerContent';
@@ -107,6 +108,10 @@ export default function RootLayout() {
           <Stack.Screen
             name="Terminy przydatności"
             component={ExpiryDatesInfoScreen}
+          />
+          <Stack.Screen
+            name="Terminy przydatności - raport"
+            component={ExpiryDatesAllScreen}
           />
           <Stack.Screen
             name="Informacja o produkcie"

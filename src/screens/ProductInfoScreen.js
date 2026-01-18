@@ -11,6 +11,7 @@ import {
 } from "../utils/ValidateFunctions";
 
 
+
 export default function ProductInfoScreen() {
 
   const navigation = useNavigation();
@@ -23,6 +24,7 @@ export default function ProductInfoScreen() {
 
   } 
 
+    const theme = useTheme();
 
   //dane w formularzu
 
@@ -33,7 +35,7 @@ export default function ProductInfoScreen() {
   const [LocationsSummary, setLocationsSummary] = useState([]);
   const [trans, setTrans] = useState([]);
 
-  const theme = useTheme();
+
 
   useEffect(()=> {
       if(itemId === '' || itemId === null) {
@@ -65,7 +67,7 @@ export default function ProductInfoScreen() {
       showsVerticalScrollIndicator={false}
       showsHorizontalScrollIndicator={false}
     >
-      <Card mode="contained" style={styles.card}>
+      <Card mode="outlined" style={[styles.card, {backgroundColor: theme.colors.background2}]}>
         {product.p_photo && <Card.Cover source={{ uri: product.p_photo }} />}
         {!product.p_photo && (
           <Card.Cover source={require("../assets/imgplaceholder.png")} />
@@ -95,7 +97,7 @@ export default function ProductInfoScreen() {
         </Card.Content>
       </Card>
       {product.p_useexpiry === 1 && (
-        <Card mode="contained" style={styles.card}>
+        <Card mode="outlined" style={[styles.card, {backgroundColor: theme.colors.background2}]}>
           <Card.Title title="📅 Ilosc produktu wg daty ważności." />
           <Card.Content>
             <View style={styles.row}>
@@ -166,7 +168,7 @@ export default function ProductInfoScreen() {
         </Card>
       )}
 
-      <Card mode="contained" style={styles.card}>
+      <Card mode="outlined" style={[styles.card, {backgroundColor: theme.colors.background2}]}>
         <Card.Title title="📦 Stan w lokalizacjach." />
         <Card.Content>
           <View style={styles.row}>
@@ -193,7 +195,7 @@ export default function ProductInfoScreen() {
         </Card.Content>
       </Card>
 
-      <Card mode="contained" style={styles.card}>
+      <Card mode="outlined" style={[styles.card, {backgroundColor: theme.colors.background2}]}>
         <Card.Title title="🔄 Ostatnie transakcje" />
         <Card.Content>
           <View style={styles.row}>
@@ -294,6 +296,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     marginTop: 10,
     marginHorizontal: 5,
+    
   },
 
   row: {

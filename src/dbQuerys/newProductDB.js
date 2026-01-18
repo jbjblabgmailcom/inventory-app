@@ -313,6 +313,89 @@ export const fetchTransactionsFromDB = (productId, locationId, filters) => {
   });
 };
 
+export const fetchExpiryDatesFromDB2 = (
+  productId = null, 
+  filters = {}
+) => {
+  const { fromDate, toDate, limit = 20, cursor } = filters;
+
+  return new Promise((resolve, reject) => {
+    db.transaction(
+      (tx) => {
+        // 1. Dynamic WHERE clause based on whether productId is provided
+        let where = productId ? `WHERE e.product_id = ?` : `WHERE 1=1`;
+        const params = productId ? [productId] : [];
+
+        if (fromDate) {
+          where += ` AND e.expiry_date >= ?`;
+          params.push(fromDate);
+        }
+
+        if (toDate) {
+          where += ` AND e.expiry_date <= ?`;
+          params.push(toDate);
+        }
+
+        if (cursor) {
+          where += ` AND e.expiry_date > ?`;
+          params.push(cursor);
+        }
+
+        // 2. Updated SQL with JOIN to 'products' table
+        const sql = `
+          SELECT 
+            e.id, 
+            e.product_id,
+            p.p_name,
+            p.p_code,
+            p.p_units,
+            e.location_id, 
+            l.location_name, 
+            e.expiry_date, 
+            e.expiry_qty
+          FROM expiry_dates e
+          JOIN products p 
+            ON p.id = e.product_id
+          JOIN locations l 
+            ON l.location_id = e.location_id 
+           AND l.product_id = e.product_id
+          ${where}
+          AND e.expiry_qty > 0
+          ORDER BY e.expiry_date ASC
+          LIMIT ?
+        `;
+
+        params.push(limit + 1);
+
+        tx.executeSql(
+          sql,
+          params,
+          (_, res) => {
+            const rows = Array.from({ length: res.rows.length }, (_, i) =>
+              res.rows.item(i)
+            );
+
+            const hasMore = rows.length > limit;
+            const items = hasMore ? rows.slice(0, limit) : rows;
+            const nextCursor = items.length > 0 ? items[items.length - 1].expiry_date : null;
+
+            resolve({ items, hasMore, nextCursor });
+          },
+          (_, err) => {
+            console.error("❌ SQL error:", err);
+            reject(err);
+            return true;
+          }
+        );
+      },
+      (txErr) => {
+        console.error("❌ Transaction error:", txErr);
+        reject(txErr);
+      }
+    );
+  });
+};
+
 
 export const fetchExpiryDatesFromDB = (
   productId,

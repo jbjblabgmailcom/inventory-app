@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { View, StyleSheet } from 'react-native';
 import { Text, Card, Button, Portal, Modal, useTheme } from 'react-native-paper';
 
-import { fetchExpiryDatesFromDB } from '../dbQuerys/newProductDB';
+import { fetchExpiryDatesFromDB2 } from '../dbQuerys/newProductDB';
 
 import { useRoute } from '@react-navigation/native';
 import FilterForm from '../components/FilterForm';
@@ -13,16 +13,17 @@ import Animated, {
   interpolate,
 } from "react-native-reanimated";
 import ExpiryDatesList from "../components/ExpiryDatesInfoScreen/ExpiryDatesFlatList";
-import { dateFromSQLiteDateOnly } from '../utils/ValidateFunctions';
 
 
 
-export default function ExpiryDatesInfoScreen() {
+
+export default function ExpiryDatesAllScreen() {
 
   
-  const route = useRoute();
+  //const route = useRoute();
 
-const {itemId, locId, pName, pCode, pQty, dateCreated, locName, useExpiry, units} = route.params;
+//const {itemId, locId, pName, pCode, pQty, dateCreated, locName, useExpiry, units} = route.params
+ // const [infoExpiry, setInfoExpiry] = useState({itemId, locId, pName, pCode, pQty, dateCreated, locName, useExpiry, units});
 
 const DEFAULT_EXPIRY_FILTERS = {
   fromDate: null,
@@ -88,7 +89,8 @@ useEffect(() => {
       setLoading(true);
 
       try {
-        const res = await fetchExpiryDatesFromDB(itemId, {
+        
+        const res = await fetchExpiryDatesFromDB2(null,{
           ...customFilters,
           cursor: reset ? null : cursor,
         });
@@ -116,7 +118,7 @@ useEffect(() => {
         setLoading(false);
       }
     },
-    [cursor, hasMore, loading, filters, itemId, locId]
+    [cursor, hasMore, loading, filters]
   );
 
   return (
@@ -151,31 +153,17 @@ useEffect(() => {
         </Modal>
       </Portal>
       <View style={styles.container}>
-        <Card mode="outlined" style={[styles.card, {backgroundColor: theme.colors.background2}]}>
-          <Card.Content>
-            <Text variant="titleLarge">Kod: {pCode}</Text>
-            <Text variant="titleMedium">Produkt: {pName}</Text>
-            <Text variant="bodyMedium">
-              Stan w lokalizacji {locName}: {pQty} {units}
-            </Text>
-            <Text>
-              Data utworzenia:{" "}
-              {dateCreated && dateFromSQLiteDateOnly(dateCreated)}
-            </Text>
-          </Card.Content>
-        </Card>
+        
 
         <View
           style={[
             styles.transactionCard,
-            {backgroundColor: theme.colors.background2,
-              borderColor: theme.colors.elevation.level4
-            },
+            { backgroundColor: theme.colors.elevation.level2 },
           ]}
         >
           <View style={styles.onelinewrapperSpacedApart}>
             <Text style={styles.transactionHeader}>
-              🔄 Dane o datach ważności
+              🔄 Daty ważności - wszytkie produkty.
             </Text>
        
           </View>
@@ -183,14 +171,14 @@ useEffect(() => {
           
           <View style={{ flex: 1 }}>
             {expiryDates.length === 0 ? (
-              <Text variant="bodyMedium">Brak danych o transakcjach.</Text>
+              <Text variant="bodyMedium">Brak danych o datach ważności.</Text>
             ) : (
               <ExpiryDatesList
                 expiryDates={expiryDates}
                 loadMore={loadMore}
                 loading={loading}
                 filters={filters}
-                units={units}
+                
               />
             )}
           </View>
@@ -203,8 +191,8 @@ useEffect(() => {
 const styles = StyleSheet.create({
 
   transactionHeader: {
-    marginTop: 10,
-    marginLeft: 10,
+    marginVertical: 10,
+    
   },
 
   input: {
@@ -252,23 +240,17 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     padding: 5,
- 
+   
     gap: 5,
   },
-  card: {
-    borderRadius: 12,
-  
-    
-  },
+ 
   transactionCard: {
     flex: 1,
-    borderRadius: 12,
-  
+    borderRadius: 5,
+    marginHorizontal: 0,
     overflow: "hidden",
     paddingHorizontal: 10,
     paddingBottom: 20,
-    borderWidth: 1,
-    
 
   },
   cardContentFull: {
@@ -276,21 +258,7 @@ const styles = StyleSheet.create({
     paddingBottom: 10, 
   },
 
-  row: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    paddingVertical: 6,
-  },
-  block: {
-    paddingVertical: 6,
-  },
-  divider: {
-    marginTop: 8,
-  },
-  muted: {
-    opacity: 0.7,
-  },
+ 
   modalContainer: {
     position: "absolute",
     //top: 50,

@@ -22,9 +22,10 @@ export const Colors = {
     "onErrorContainer": "rgb(69, 10, 10)",
 
     "background": "rgb(248, 250, 252)",
+    "background2": "rgba(239, 244, 247, 1)",
     "onBackground": "rgb(15, 23, 42)",
 
-    "surface": "rgb(255, 255, 255)",
+    "surface": "rgba(255, 255, 255, 0.92)",
     "onSurface": "rgb(15, 23, 42)",
 
     "surfaceVariant": "rgb(241, 245, 249)",
@@ -43,10 +44,10 @@ export const Colors = {
     "elevation": {
       "level0": "transparent",
       "level1": "rgb(248, 250, 252)",
-      "level2": "rgb(241, 245, 249)",
-      "level3": "rgb(226, 232, 240)",
-      "level4": "rgb(203, 213, 225)",
-      "level5": "rgb(148, 163, 184)"
+      "level2": "rgba(231, 238, 245, 1)",
+      "level3": "rgba(179, 185, 192, 1)",
+      "level4": "rgba(166, 174, 184, 1)",
+      "level5": "rgba(126, 138, 156, 1)"
     },
 
     "surfaceDisabled": "rgba(15, 23, 42, 0.12)",
@@ -82,8 +83,10 @@ export const Colors = {
     "errorContainer": "rgb(153, 27, 27)",
     "onErrorContainer": "rgb(254, 226, 226)",
 
-    "background": "rgb(2, 6, 23)",
+    "background": "rgba(9, 13, 32, 1)",
+    "background2": "rgba(40, 46, 73, 1)",
     "onBackground": "rgb(226, 232, 240)",
+
 
     "surface": "rgb(2, 6, 23)",
     "onSurface": "rgb(226, 232, 240)",
@@ -112,6 +115,6 @@ export const Colors = {
 
     "surfaceDisabled": "rgba(226, 232, 240, 0.12)",
     "onSurfaceDisabled": "rgba(226, 232, 240, 0.38)",
-    "backdrop": "rgba(2, 6, 23, 0.6)"
+    "backdrop": "rgba(86, 100, 163, 0.6)"
   }
 }
