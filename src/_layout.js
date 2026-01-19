@@ -80,7 +80,7 @@ export default function RootLayout() {
                   onPress={() => navigation.openDrawer()}
                 />
 
-                {/* Back arrow */}
+              
                 {navigation.canGoBack() && (
                   <IconButton
                     icon="arrow-left"

@@ -1,5 +1,5 @@
 import React, {useEffect, useState} from 'react';
-import {Text, Surface, IconButton, Portal, Modal, Menu} from 'react-native-paper';
+import {Text, Surface, IconButton, Portal, Modal, Menu, useTheme} from 'react-native-paper';
 import { useNavigation } from '@react-navigation/native';
 import { FlatList, TouchableOpacity, View, StyleSheet, Image } from 'react-native';
 import { deleteProductById } from '../dbQuerys/newProductDB';
@@ -10,6 +10,7 @@ import { deleteProductById } from '../dbQuerys/newProductDB';
 export default function ListItems(props){
 
     const [modalVisible, setModalVisible] = useState(false);
+    const theme = useTheme();
    
     const [productForRemoval, setProductForRemoval] = useState({});
     
@@ -22,6 +23,7 @@ export default function ListItems(props){
    const productList = props.dbData?._array || [];
    const onRemove = props.onRemove;
    const setOnRemove = props.setOnRemove;
+   const loadingProducts = props.loadingProducts;
 
     const deleteProduct = (id, name) => {
             setProductForRemoval({
@@ -30,7 +32,7 @@ export default function ListItems(props){
             });
            setModalVisible(true);
     }; 
-
+ 
     const deleteProductConfirm = (removeId) => {
        deleteProductById(removeId)
        .then(result => {
@@ -142,7 +144,7 @@ export default function ListItems(props){
         <>
         
         <Portal>
-        <Modal visible={modalVisible} onDismiss={onDismissModal} contentContainerStyle={styles.modalStyle}>
+        <Modal visible={modalVisible} onDismiss={onDismissModal} contentContainerStyle={[styles.modalStyle, {backgroundColor: theme.colors.background2}]}>
         <View style={styles.viewcolumnmodal}>
         <Text style={styles.modaltext}>Usuwasz: {productForRemoval.removeName}</Text>
           <Text>Uwaga! Permanentnie usuwasz ten produkt oraz wszystkie dane na jego temat łącznie z historią.</Text>
@@ -171,10 +173,10 @@ export default function ListItems(props){
         </Modal>
       </Portal>
       
-        {productList.length === 0 && 
+        {!props.loadingProducts && productList.length === 0 && 
             <View style={{display: 'flex', justifyContent: 'space-around', alignSelf: 'center'}}>
                 <View style={styles.modalStyle}>
-                <Text variant="titleLarge">Brak produków zgodnych z wyszukiwaną frazą. Zdefiniuj nowy produkt.</Text>
+                <Text variant="titleLarge">Nie znaleziono produktów. Zdefiniuj nowy produkt.</Text>
                </View>
             </View>
         }
@@ -234,7 +236,7 @@ const styles = StyleSheet.create({
         borderRadius: 10,
         padding: 20,
         margin: 10,
-        backgroundColor: 'rgba(78, 78, 78, 1)',
+       
         
 
     },

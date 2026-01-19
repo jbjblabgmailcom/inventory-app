@@ -5,7 +5,7 @@ import ListItems from '../components/ListItems';
 import SearchComponent from '../components/SearchComponent';
 import FloatingButton from '../components/FloatingButton';
 import { useNavigation } from '@react-navigation/native';
-import {Portal, Modal, Text, ActivityIndicator, Button} from 'react-native-paper';
+import {Portal, Modal, Text, ActivityIndicator, Button, useTheme} from 'react-native-paper';
 import { useScanner } from '../hooks/useScanner';
 import ScannerFrame from '../components/ScannerComponent';
 import { fetchProductByCodefromDB } from '../dbQuerys/newProductDB';
@@ -24,6 +24,7 @@ export default function ListProductsEditScreen() {
   const [scanModalVisible, setScanModalVisible] = useState(false);
   const [loadingAnimation, setLoadingAnimation] = useState(false);
   const [loadingProducts, setLoadingProducts] = useState(false);
+  const theme = useTheme();
 
   const [info, setInfo] = useState({});
 
@@ -31,7 +32,7 @@ export default function ListProductsEditScreen() {
 
   useEffect (()=> {
     setLoadingProducts(true);
-    fetchProductsFromDB(inputValue)
+       fetchProductsFromDB(inputValue)
     .then(
       result => 
         {setProductList(result);
@@ -40,6 +41,7 @@ export default function ListProductsEditScreen() {
         }
     )
     .catch(err => console.error("DB error", err));
+
   },[removedProduct]);
 
   const handleEndEditing = () => {
@@ -101,7 +103,7 @@ export default function ListProductsEditScreen() {
         <Modal
           visible={scanModalVisible}
           onDismiss={() => dismissModal()}
-          style={styles.modalStyle}
+          style={[styles.modalStyle, {backgroundColor: theme.colors.background2, borderColor: theme.colors.elevation.level5}]}
           animationType="fade"
         >
           <Text style={styles.modalText}>
@@ -138,14 +140,14 @@ export default function ListProductsEditScreen() {
           setInputValue={setInputValue}
           loadingProducts={loadingProducts}
         />
-
+        {!loadingProducts &&
         <ListItems
           dbData={productList || {}}
           onRemove={removedProduct}
           setOnRemove={setRemovedProduct}
           loadingProducts={loadingProducts}
         />
-
+        }
         <FloatingButton
           visibility={false}
           onPress={() => navigation.navigate("Definiuj nowy produkt")}
@@ -176,13 +178,11 @@ const styles = StyleSheet.create({
  },
  modalStyle: {
         display: 'flex',
-        borderColor: 'rgba(73, 80, 121, 1)',
-        borderWidth: 2,
+        borderWidth: 1,
         borderStyle:'solid', 
         borderRadius: 10,
         padding: 20,
         margin: 10,
-        backgroundColor: 'rgba(78, 78, 78, 0.77)',
         flexDirection: 'column',
         justifyContent: 'space-evenly',
         marginTop: 100,

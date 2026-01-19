@@ -4,8 +4,9 @@ import React, {
   useLayoutEffect,
   useRef,
   useMemo,
+  useCallback
 } from "react";
-import { useRoute } from "@react-navigation/native";
+import { useRoute, useFocusEffect } from "@react-navigation/native";
 import { View, StyleSheet, Alert } from "react-native";
 import {
   Portal,
@@ -218,8 +219,9 @@ useEffect(() => {
     });
   }, [navigation, toggleMenu, isSheetOpen, locationGlobal]);
 
-  useEffect(() => {
-    if(locationGlobal && Object.keys(locationGlobal).length != 0) {
+  useFocusEffect(
+    useCallback(() => {
+      if(locationGlobal && Object.keys(locationGlobal).length != 0) {
         setLoadingProducts(true);
         fetchProductByLocationfromDB(locationGlobal?.loc_name, inputValue)
       .then((result) => {
@@ -231,8 +233,10 @@ useEffect(() => {
          
       
     }
-    
-  }, [locationGlobal, onRemove]); 
+
+      
+    }, [locationGlobal, onRemove])
+  );
 
   useEffect(() => {
     if (barCodeValue != "Skanowanie w toku") {
@@ -484,7 +488,7 @@ const styles = StyleSheet.create({
   },
   modalStyle: {
     display: "flex",
-    borderWidth: 2,
+    borderWidth: 1,
     borderStyle: "solid",
     borderRadius: 5,
     margin: 10,

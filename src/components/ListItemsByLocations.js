@@ -338,7 +338,7 @@ const animatedStyle = useAnimatedStyle(() => ({
                 keyExtractor={(item) => item.location_id.toString()}
                 renderItem={({ item }) => <ProductItem item={item} />}
               />
-              <View style={styles.modalStyle}>
+              <View>
                 <Text variant="titleSmall">
                   Naciśnij i przytrzymaj produkt, by otworzyć menu opcji.
                 </Text>
@@ -403,9 +403,15 @@ const styles = StyleSheet.create({
     flexDirection: "row",
   },
   modalStyle: {
+    display: "flex",
+    borderWidth: 1,
+    borderStyle: "solid",
+    borderRadius: 5,
     margin: 10,
+    minHeight: 200,
+    alignItems: "center",
     padding: 10,
-   
+    paddingBottom: 20,
   },
   modaltext: {
     alignSelf: "center",

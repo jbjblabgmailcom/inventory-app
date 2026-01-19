@@ -115,6 +115,6 @@ export const Colors = {
 
     "surfaceDisabled": "rgba(226, 232, 240, 0.12)",
     "onSurfaceDisabled": "rgba(226, 232, 240, 0.38)",
-    "backdrop": "rgba(86, 100, 163, 0.6)"
+    "backdrop": "rgba(17, 20, 34, 0.67)"
   }
 }
