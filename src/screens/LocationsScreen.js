@@ -43,8 +43,10 @@ import {
 import { useDismissModal } from "../hooks/useDismissModal";
 import { AddLocationModal } from '../components/LocationsScreen/AddLocationModal';
 import { AddProductModal } from "../components/LocationsScreen/AddProductModal";
+import { AddProductByNameModal } from "../components/LocationsScreen/AddProductByNameModal";
 import { BottomSheetContent } from "../components/LocationsScreen/BottomSheetContent";
 import RemoveProductModal from '../components/LocationsScreen/RemoveProductModal';
+
 
 import Animated, {
   useAnimatedStyle,
@@ -367,6 +369,32 @@ useEffect(() => {
                 savingToDB={savingToDB}
               />
             )}
+            {modalType === "addproductbyname" && (
+              <AddProductByNameModal
+                modalOpen={modalOpen}
+                setModalOpen={setModalOpen}
+                expiryDate={expiryDate}
+                onConfirm={onConfirm}
+               productForAdd={productForAdd}
+               setProductForAdd={setProductForAdd}
+                counter={counter}
+                changeCounter={changeCounter}
+                validateDateForSQLite={validateDateForSQLite}
+                handleAddToDBOtherLocation={handleAddToDBOtherLocation}
+               locationInfo={locationInfo}
+                locationGlobal={locationGlobal}
+                onDismissModal={onDismissModal}
+                locationsList={locationsList}
+                setExpiryDate={setExpiryDate}
+                savingToDB={savingToDB}
+                locationOther={locationOther}
+                setLocationOther={setLocationOther}
+                setOnRemove={setOnRemove}
+                onRemove={onRemove}
+                
+
+              />
+            )}
 
             {modalType === "removeProduct" && (
               <RemoveProductModal
@@ -447,7 +475,19 @@ useEffect(() => {
         }}
         icon="qrcode-plus"
         visibility={isSheetOpen}
-        right={0}
+        right={10}
+        size={60}
+      />
+      <FloatingButton
+        onPress={() => {
+          setModalVisible(true);
+          setModalType("addproductbyname");
+          setScannerVisible(false);
+        }}
+        icon="playlist-plus"
+        visibility={isSheetOpen}
+        right={90}
+        size={60}
       />
       <FloatingButton
         onPress={() => {
@@ -457,7 +497,8 @@ useEffect(() => {
         }}
         icon="qrcode-minus"
         visibility={isSheetOpen}
-        right={110}
+        right={170}
+        size={60}
       />
         </> 
           }

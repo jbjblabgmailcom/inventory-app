@@ -1,5 +1,6 @@
 import { Alert } from 'react-native';
 import { dateToSQLite, dateToSQLiteCurrent } from '../utils/ValidateFunctions';
+import { noExpiryDate } from '../consts/staticDate';
 
 import { db } from '../db/db';
 
@@ -318,11 +319,11 @@ export const fetchExpiryDatesFromDB2 = (
   filters = {}
 ) => {
   const { fromDate, toDate, limit = 20, cursor } = filters;
-
+ 
   return new Promise((resolve, reject) => {
     db.transaction(
       (tx) => {
-        // 1. Dynamic WHERE clause based on whether productId is provided
+        
         let where = productId ? `WHERE e.product_id = ?` : `WHERE 1=1`;
         const params = productId ? [productId] : [];
 
@@ -360,7 +361,7 @@ export const fetchExpiryDatesFromDB2 = (
             ON l.location_id = e.location_id 
            AND l.product_id = e.product_id
           ${where}
-          AND e.expiry_qty > 0
+          AND e.expiry_qty > 0 AND e.expiry_date <> '2000-01-01 00:00:00'
           ORDER BY e.expiry_date ASC
           LIMIT ?
         `;

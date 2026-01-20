@@ -273,18 +273,33 @@ const animatedStyle = useAnimatedStyle(() => ({
               />
 
               <View style={styles.viewcolumnmodal}>
+                {maxRemove - productForRemoval.removeQty >= 0 ? (
+                <>
                 <Text style={styles.modaltext}>
                   Usuwasz {productForRemoval.removeQty}{" "}
                   {productForRemoval.removeUnits} {productForRemoval.removeName}{" "}
                   z {productForRemoval.removeLocName}.
                 </Text>
 
-                <Text style={styles.modaltext}>
+                  <Text style={styles.modaltext}>
                   Pozostanie {maxRemove - productForRemoval.removeQty}{" "}
                   {productForRemoval.removeUnits}
-                </Text>
+                  </Text>  
+                  <Text style={styles.modaltext}>Na pewno?</Text>
+                  </>
+                  ):(
+                    <>
+                    <Text style={styles.modaltext}>
+                  Dostępna ilość to {maxRemove}{" "}
+                  {productForRemoval.removeUnits}
+                  </Text>  
+                  <Text style={styles.modaltext}>Nie można usunąć.</Text>
+                  </>
+                  )}
+                  
+                
              
-                <Text style={styles.modaltext}>Na pewno?</Text>
+                
               </View>
               <View style={styles.onelinewrapperSpaced}>
                 <Button
@@ -296,6 +311,7 @@ const animatedStyle = useAnimatedStyle(() => ({
                 </Button>
 
                 <Button
+                  disabled={maxRemove - productForRemoval.removeQty < 0}
                   mode="contained"
                   icon="check"
                   onPress={() => deleteProductConfirm()}

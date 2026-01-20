@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { View, StyleSheet } from 'react-native';
-import { Text, Card, Button, Portal, Modal, useTheme } from 'react-native-paper';
+import { Text, Portal, Modal, useTheme } from 'react-native-paper';
 
 import { fetchExpiryDatesFromDB2 } from '../dbQuerys/newProductDB';
 
@@ -75,10 +75,6 @@ useEffect(() => {
     const onDismissModal = () => {
         setModalVisible(false);
     }
-
-  useEffect(()=>{
-    console.log("EXPIRY", expiryDates);
-  },[expiryDates]);
 
 
   const loadMore = useCallback(

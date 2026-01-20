@@ -125,7 +125,7 @@ export default function ListProductsEditScreen() {
           <ActivityIndicator
             mode="contained"
             animating={loadingAnimation}
-            size={80}
+            size={60}
           />
           <Button mode="contained" onPress={dismissModal}>
             Zamknij
@@ -152,13 +152,17 @@ export default function ListProductsEditScreen() {
           visibility={false}
           onPress={() => navigation.navigate("Definiuj nowy produkt")}
           icon="new-box"
-          right={110}
+          right={95}
+          bottom={20}
+          size={60}
         />
         <FloatingButton
           visibility={false}
           onPress={() => setScanModalVisible(true)}
           icon="qrcode-edit"
           right={10}
+          bottom={20}
+          size={60}
         />
       </View>
     </>
