@@ -325,14 +325,16 @@ const animatedStyle = useAnimatedStyle(() => ({
         </Portal>
         <View style={styles.column}>
           <View style={styles.onelinewrapper}>
-            <View style={styles.searchComponent}>
-              <SearchComponent
-                handleEndEditing={handleEndEditing}
-                inputValue={inputValue}
-                setInputValue={setInputValue}
-                loadingProducts={loadingProducts}
-              />
-            </View>
+                  <View style={{width: '98%'}}>
+                      <SearchComponent
+                      handleEndEditing={handleEndEditing}
+                      inputValue={inputValue}
+                      setInputValue={setInputValue}
+                      loadingProducts={loadingProducts}
+                    />
+                  </View>
+              
+           
           </View>
 
           <View>
@@ -377,10 +379,7 @@ const styles = StyleSheet.create({
     marginLeft: 20,
   },
   
-  searchComponent: {
-    flex: 1,
-    alignItems: 'center',
-  },
+  
 
   surfacestyle: {
     display: "flex",

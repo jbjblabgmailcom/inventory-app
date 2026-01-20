@@ -4,7 +4,7 @@ import { StyleSheet, View } from 'react-native';
 import { validateName } from '../utils/ValidateFunctions';
 
 
-export default function SearchComponent({handleEndEditing, inputValue, setInputValue, loadingProducts}) {
+export default function SearchComponent({handleEndEditing, inputValue, setInputValue}) {
 
    
 
@@ -25,19 +25,13 @@ export default function SearchComponent({handleEndEditing, inputValue, setInputV
                   onPress={() => {
                     setInputValue("");
                     handleEndEditing();
-                  }}
+                    }}
                 />
               ) : null
             }
             left={<TextInput.Icon icon="magnify" />}
           />
-          {loadingProducts && (
-            <View style={styles.loading}>
-              <ActivityIndicator animating={loadingProducts} size={100} />
-              <Text>Szukam produktów</Text>
-            </View>
-          )}
-     
+         
       </>
     );
 
@@ -54,10 +48,8 @@ const styles = StyleSheet.create({
   },
 
     textinput: {
-      width: '98%',
       marginHorizontal: 5,
       marginVertical: 5,
-       
-      
+      width: '100%',      
     },
 });

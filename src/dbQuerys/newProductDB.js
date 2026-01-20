@@ -102,39 +102,85 @@ export const fetchLocationsFromDB = () => {
 
 
 
-export const fetchProductsFromDB = (searchText = '') => {
+export const fetchProductsFromDB = (searchText, filters) => {
+  const category = filters.category || '';
+  const limit = Number(filters.limit) || 10;
+  const cursor = filters.cursor ?? null;
+
+  console.log('[DB] fetchProductsFromDB called');
+  console.log('[DB] searchText:', searchText);
+  console.log('[DB] filters:', filters);
+  console.log('[DB] category:', category);
+  console.log('[DB] limit:', limit);
+  console.log('[DB] cursor:', cursor);
+
   return new Promise((resolve, reject) => {
     try {
       db.transaction(tx => {
+        let query = `SELECT * FROM products WHERE p_name LIKE ?`;
+        const params = [`%${searchText}%`];
+
+        if (category) {
+          query += ` AND p_category = ?`;
+          params.push(category);
+        }
+
+        if (cursor !== null) {
+          query += ` AND id < ?`;
+          params.push(cursor);
+        }
+
+        query += ` ORDER BY id DESC LIMIT ?`;
+        params.push(limit + 1);
+
+        // 🔎 LOG FINAL SQL
+        console.log('[DB] FINAL QUERY:', query);
+        console.log('[DB] PARAMS:', params);
+
         tx.executeSql(
-          `
-          SELECT *
-          FROM products
-          WHERE p_name LIKE ?
-          ORDER BY id DESC
-          LIMIT 40
-          `,
-          [`%${searchText}%`],
+          query,
+          params,
           (_, results) => {
-            resolve(results.rows);
+            console.log('[DB] SQL SUCCESS');
+            console.log('[DB] rows.length:', results.rows.length);
+
+            const rows = [];
+            for (let i = 0; i < results.rows.length; i++) {
+              rows.push(results.rows.item(i));
+            }
+
+            console.log('[DB] rows:', rows);
+
+            const hasMore = rows.length > limit;
+            const data = hasMore ? rows.slice(0, limit) : rows;
+
+            console.log('[DB] data.length:', data.length);
+            console.log('[DB] hasMore:', hasMore);
+            console.log(
+              '[DB] nextCursor:',
+              data.length ? data[data.length - 1].id : null
+            );
+
+            resolve({
+              data,
+              nextCursor: data.length ? data[data.length - 1].id : null,
+              hasMore,
+            });
           },
           (_, error) => {
-            console.log('Error fetching products:', error);
+            console.error('[DB] SQL ERROR:', error);
             reject(error);
             return true;
           }
         );
-      },
-      error => {
-        console.log('DB Transaction error:', error);
-        reject(error);
       });
     } catch (e) {
-      console.log('Unexpected DB error:', e);
+      console.error('[DB] UNEXPECTED ERROR:', e);
       reject(e);
     }
   });
 };
+
 
 export const fetchSingleProductFromDB = (productId, locationId) => {
   return new Promise((resolve, reject) => {

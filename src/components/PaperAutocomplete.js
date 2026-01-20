@@ -13,7 +13,9 @@ const PaperAutocomplete = ({
   onChangeText, 
   value,
   error = false,
-  disabled = false
+  disabled = false,
+ 
+
 }) => {
   const theme = useTheme();
   const [isMenuVisible, setIsMenuVisible] = useState(false);
@@ -90,6 +92,7 @@ const safeValue =
       }}
     >
       <Menu
+      
         visible={isMenuVisible && filteredOptions.length > 0}
         onDismiss={() => setIsMenuVisible(false)}
         anchorPosition="bottom"
@@ -102,12 +105,13 @@ const safeValue =
             error={error}
             style={styles.textInput}
             disabled={disabled}
+           
           />
         }
         style={[
           {
             width: textInputLayout?.width || SCREEN_WIDTH - 40,
-            
+         
           },
          
         ]}
@@ -130,10 +134,13 @@ const safeValue =
 
 const styles = StyleSheet.create({
   container: {
-    width: "100%",
+    flex: 1,
     zIndex: 10,
   },
-  textInput: {},
+  textInput: {
+ 
+    width: '100%'
+  },
   menuContent: {
     maxHeight: 400,
   },

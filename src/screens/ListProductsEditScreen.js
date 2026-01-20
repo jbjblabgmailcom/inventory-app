@@ -1,14 +1,15 @@
-import React, {useState ,useEffect} from 'react';
+import React, {useState ,useEffect, useCallback, useRef} from 'react';
 import { StyleSheet, View} from 'react-native';
 import { fetchProductsFromDB } from '../dbQuerys/newProductDB';
 import ListItems from '../components/ListItems';
 import SearchComponent from '../components/SearchComponent';
 import FloatingButton from '../components/FloatingButton';
 import { useNavigation } from '@react-navigation/native';
-import {Portal, Modal, Text, ActivityIndicator, Button, useTheme} from 'react-native-paper';
+import {Portal, Modal, Text, ActivityIndicator, Button, useTheme, IconButton} from 'react-native-paper';
 import { useScanner } from '../hooks/useScanner';
 import ScannerFrame from '../components/ScannerComponent';
 import { fetchProductByCodefromDB } from '../dbQuerys/newProductDB';
+import FilterForm from '../components/ListProductEditScreen/FilterForm';
 
 
 
@@ -16,37 +17,95 @@ import { fetchProductByCodefromDB } from '../dbQuerys/newProductDB';
 
 export default function ListProductsEditScreen() {
 
+  const DEFAULT_FILTERS = {
+        category: "",
+        limit: 20,
+        cursor: null, 
+      };
+  
+    const [filters, setFilters] = useState(DEFAULT_FILTERS);
+    const loadingRef = useRef(false);
+
+  useEffect(() => {
+      setProductList([]); // Clear immediately on filter change
+      setCursor(null);
+      setHasMore(true);
+      loadMore(filters, true);
+    }, [filters]);
+
 
   const [productList, setProductList] = useState();
+  const [cursor, setCursor] = useState(null);
+  const [hasMore, setHasMore] = useState(true);
   const [removedProduct, setRemovedProduct] = useState(false);
   const [inputValue, setInputValue] = useState('');
   const navigation = useNavigation();
   const [scanModalVisible, setScanModalVisible] = useState(false);
   const [loadingAnimation, setLoadingAnimation] = useState(false);
   const [loadingProducts, setLoadingProducts] = useState(false);
+  const [tuneMenuVisible, setTuneMenuVisible] = useState(false);
   const theme = useTheme();
 
   const [info, setInfo] = useState({});
 
   const { onReadCode, barCodeValue, setBarCoreValue } = useScanner();
 
-  useEffect (()=> {
-    setLoadingProducts(true);
-       fetchProductsFromDB(inputValue)
-    .then(
-      result => 
-        {setProductList(result);
-          setLoadingProducts(false);
-      console.log('Lista produktów z bazy', result);
-        }
-    )
-    .catch(err => console.error("DB error", err));
+  const loadMore = useCallback(
+  async (customFilters = filters, reset = false) => {
+    if (loadingRef.current) return;
 
-  },[removedProduct]);
+    if (!hasMore && !reset) return;
+
+    loadingRef.current = true;
+    setLoadingProducts(true);
+
+    // reset pagination safely
+    if (reset) {
+      setCursor(null);
+      setHasMore(true);
+    }
+
+    try {
+      const res = await fetchProductsFromDB(inputValue, {
+        ...customFilters,
+        cursor: reset ? null : cursor,
+      });
+
+      const fetchedData = res.data || [];
+
+      setProductList(prev => {
+        if (reset) return fetchedData;
+
+        const existingIds = new Set(prev.map(p => p.id));
+        const uniqueNew = fetchedData.filter(p => !existingIds.has(p.id));
+
+        return [...prev, ...uniqueNew];
+      });
+
+      setCursor(res.nextCursor);
+      setHasMore(res.hasMore);
+
+    } catch (err) {
+      console.error('Failed to load products:', err);
+    } finally {
+      loadingRef.current = false;
+      setLoadingProducts(false);
+    }
+  },
+  [cursor, hasMore, filters, inputValue]
+);
+
 
   const handleEndEditing = () => {
-          setRemovedProduct(!removedProduct);
+          loadMore(filters, true);
   };
+
+  useEffect(()=> {
+  
+      handleEndEditing();
+  
+    
+  },[inputValue]);
 
 
     useEffect(()=>{
@@ -134,19 +193,47 @@ export default function ListProductsEditScreen() {
       </Portal>
 
       <View style={styles.container}>
-        <SearchComponent
+        <View style={styles.onelinewrapperBaseSpace}>
+          <View style={{width: '85%'}}>
+              <SearchComponent
           handleEndEditing={handleEndEditing}
           inputValue={inputValue}
           setInputValue={setInputValue}
-          loadingProducts={loadingProducts}
+          
         />
+          </View>
+          
+        <IconButton 
+        mode='contained'
+        style={styles.tuneIcon}
+        icon="tune"
+        size={40}
+        onPress={()=> setTuneMenuVisible(!tuneMenuVisible)}
+        />
+        </View>
+        {tuneMenuVisible &&
+        <FilterForm
+              filters={filters}
+              setFilters={setFilters}
+              default_filters={DEFAULT_FILTERS}
+              setProductList={setProductList}
+              setCursor={setCursor}
+              setHasMore={setHasMore}
+              loadMore={loadMore}
+             // onDismissModal={onDismissModal}
+            />
+            }
         {!loadingProducts &&
+       
         <ListItems
           dbData={productList || {}}
-          onRemove={removedProduct}
-          setOnRemove={setRemovedProduct}
+          handleEndEditing={handleEndEditing}
           loadingProducts={loadingProducts}
+          loadMore={loadMore}
+          filters={filters}
         />
+        
+          
         }
         <FloatingButton
           visibility={false}
@@ -180,6 +267,19 @@ const styles = StyleSheet.create({
     paddingHorizontal: 5,
 
  },
+ onelinewrapper: {
+    display: "flex",
+    flexDirection: "row",
+    width: "100%",
+    justifyContent: "center",
+  },
+  onelinewrapperBaseSpace: {
+    display: "flex",
+    flexDirection: "row",
+    width: "100%",
+    justifyContent: 'space-evenly',
+    alignItems: 'center'
+  },
  modalStyle: {
         display: 'flex',
         borderWidth: 1,
@@ -208,5 +308,13 @@ const styles = StyleSheet.create({
       color: 'rgba(255, 0, 0, 1)',
       fontSize: 20,
      
+    },
+    tuneIcon: {
+      flex: 1, 
+      borderRadius: 0,
+      borderTopLeftRadius: 5,
+      borderTopRightRadius: 5,
+      borderBottomWidth: 1,
+
     },
 });
