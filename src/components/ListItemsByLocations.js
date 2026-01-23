@@ -1,4 +1,4 @@
-import React, {useState, useEffect} from 'react';
+import React, {useState, useEffect, useCallback} from 'react';
 import {Text, Surface, IconButton, Button, Portal, useTheme, Modal, Menu, Divider} from 'react-native-paper';
 import { useNavigation } from '@react-navigation/native';
 import { FlatList, TouchableOpacity, View, StyleSheet, Image} from 'react-native';
@@ -11,6 +11,8 @@ import Animated, {
 } from "react-native-reanimated";
 import QtyWrapper from './QtyWrapper';
 import SearchComponent from './SearchComponent';
+import FilterForm from './LocationsScreen/FilterForm';
+import InfiniteScrollFlatList from './InfiniteScrollFlatList';
 
 
 
@@ -19,26 +21,30 @@ export default function ListItemsByLocation(props){
 
   const {
     dbData: productList = [],
-    onRemove,
-    setOnRemove,
     inputValue,
     setInputValue,
     loadingProducts,
+    handleEndEditing,
+    filters,
+    setFilters,
+    DEFAULT_FILTERS,
+    setProductList,
+    setCursor,
+    setHasMore,
+    loadMore
   } = props;
     
     
     const [modalVisible, setModalVisible] = useState(false);
     const [productForRemoval, setProductForRemoval] = useState({});
     const [maxRemove, setMaxRemove] = useState(0);
+    const [tuneMenuVisible, setTuneMenuVisible] = useState(false);
   
     const theme = useTheme();
 
     const [menuVisibleFor, setMenuVisibleFor] = useState(null);
  
     
-    const handleEndEditing = () => {
-      setOnRemove(!onRemove);
-    };
 
     const anim = useSharedValue(0);
 
@@ -101,12 +107,9 @@ const animatedStyle = useAnimatedStyle(() => ({
          
             removeProductFromLocation(productForRemoval)
            .then(result => {
-                console.log("delete result", result);
-               console.log("removed", result.removed);
-               console.log("remaining", result.remaining);
-               console.log("delete transactionType", result.transactionType);
+               
                 onDismissModal();
-                setOnRemove(!onRemove);
+                handleEndEditing();
            })
            .catch(err => console.log("DELETING ERROR", err)); 
     
@@ -133,7 +136,7 @@ const animatedStyle = useAnimatedStyle(() => ({
         const navigation = useNavigation();
 
 
-       const ProductItem = ({ item }) => (
+       const ProductItem = React.memo(({ item }) => (
          <Menu
          mode="elevated"
             elevation={3}
@@ -248,9 +251,12 @@ const animatedStyle = useAnimatedStyle(() => ({
              title="Informacje"
            />
          </Menu>
-       );
+       ));
 
-
+const renderItem = useCallback(
+  ({ item }) => <ProductItem item={item} />,
+  [menuVisibleFor, productList]
+);
 
     return (
       <>
@@ -324,20 +330,42 @@ const animatedStyle = useAnimatedStyle(() => ({
           </Modal>
         </Portal>
         <View style={styles.column}>
-          <View style={styles.onelinewrapper}>
-                  <View style={{width: '98%'}}>
+          <View style={styles.onelinewrapperBaseSpace}>
+                  <View style={{width: '85%'}}>
                       <SearchComponent
                       handleEndEditing={handleEndEditing}
                       inputValue={inputValue}
                       setInputValue={setInputValue}
                       loadingProducts={loadingProducts}
+                    
                     />
                   </View>
-              
-           
+              <IconButton 
+                    mode='contained'
+                    style={styles.tuneIcon}
+                    icon="tune"
+                    size={40}
+                    onPress={()=> setTuneMenuVisible(!tuneMenuVisible)}
+                    />
           </View>
 
-          <View>
+
+        {tuneMenuVisible &&
+        <FilterForm
+              filters={filters}
+              setFilters={setFilters}
+              default_filters={DEFAULT_FILTERS}
+              setProductList={setProductList}
+              setCursor={setCursor}
+              setHasMore={setHasMore}
+              loadMore={loadMore}
+             
+            />
+            }
+           
+        
+
+          <View style={{flex: 1}}>
             {!loadingProducts && productList.length === 0 && (
               <View style={styles.modalStyle}>
                 <Text variant="titleLarge">
@@ -347,21 +375,16 @@ const animatedStyle = useAnimatedStyle(() => ({
             )}
 
             {productList.length > 0 && (
-              <>
-              <FlatList
-                horizontal={false}
-                data={productList}
-                showsHorizontalScrollIndicator={false}
-                showsVerticalScrollIndicator={false}
-                keyExtractor={(item) => item.location_id.toString()}
-                renderItem={({ item }) => <ProductItem item={item} />}
-              />
-              <View>
-                <Text variant="titleSmall">
-                  Naciśnij i przytrzymaj produkt, by otworzyć menu opcji.
-                </Text>
-              </View>
-              </>
+           
+                  <InfiniteScrollFlatList 
+                    renderItem={renderItem}
+                    loadMore={loadMore}
+                    filters={filters}
+                    data={productList}
+                    loading={loadingProducts}
+                    
+                    /> 
+             
             )
             
             }
@@ -404,7 +427,7 @@ const styles = StyleSheet.create({
     maxWidth: "100%",
     justifyContent: "space-evenly",
 
-    marginBottom: 3,
+    marginBottom: 2,
   },
   left: {},
 
@@ -474,5 +497,21 @@ const styles = StyleSheet.create({
     flex: 1,
     flexDirection: 'column',
     justifyContent: 'flex-start',
+  },
+  tuneIcon: {
+      flex: 1, 
+      borderRadius: 0,
+      borderTopLeftRadius: 5,
+      borderTopRightRadius: 5,
+      borderBottomWidth: 1,
+      
+
+    },
+  onelinewrapperBaseSpace: {
+      display: "flex",
+      flexDirection: "row",
+      width: "100%",
+      justifyContent: 'space-evenly',
+      alignItems: 'center'
   },
 });

@@ -37,7 +37,6 @@ export default function ListProductsEditScreen() {
   const [productList, setProductList] = useState();
   const [cursor, setCursor] = useState(null);
   const [hasMore, setHasMore] = useState(true);
-  const [removedProduct, setRemovedProduct] = useState(false);
   const [inputValue, setInputValue] = useState('');
   const navigation = useNavigation();
   const [scanModalVisible, setScanModalVisible] = useState(false);
@@ -86,7 +85,7 @@ export default function ListProductsEditScreen() {
       setHasMore(res.hasMore);
 
     } catch (err) {
-      console.error('Failed to load products:', err);
+      console.log('Failed to load products:', err);
     } finally {
       loadingRef.current = false;
       setLoadingProducts(false);
@@ -114,7 +113,6 @@ export default function ListProductsEditScreen() {
         fetchProductByCodefromDB(barCodeValue)
         .then(result =>{
             if(result.product != null) {
-            console.log("result tu i teraz", result.product);
             setInfo(
               {
                 success: true,
@@ -134,15 +132,14 @@ export default function ListProductsEditScreen() {
 
         })
         .catch(error => {
-           console.log("nie znaleziono takiego kodu", error);
-            setInfo(
+           setInfo(
               {
                 success: false,
                 message: 'Nie znaleziono takiego kodu'
               });
 
         });
-          } //if
+          } 
 
 
     },[barCodeValue]);

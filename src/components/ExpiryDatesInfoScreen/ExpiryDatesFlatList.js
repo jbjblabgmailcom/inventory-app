@@ -47,6 +47,8 @@ const ExpiryDatesItem = memo(({ t, units }) => {
   const navigation = useNavigation();
   const theme = useTheme();
   const days = numberOfDaysToDate(dateFromSQLiteDateOnly(t.expiry_date));
+  const hasExpiry = dateFromSQLiteDateOnly(t.expiry_date) != '2000-01-01';
+
   return (
 
     <TouchableOpacity 
@@ -57,7 +59,8 @@ const ExpiryDatesItem = memo(({ t, units }) => {
       elevation={0}
       style={[
         styles.surface,
-        days < 0 && { backgroundColor: theme.colors.onError },
+        !hasExpiry && {backgroundColor: theme.colors.onSecondary},
+        days < 0 && hasExpiry && { backgroundColor: theme.colors.onError },
         days === 0 && { backgroundColor: theme.colors.error },
         days > 0 && days <= 30 && { backgroundColor: theme.colors.onSecondary },
         days > 30 && { backgroundColor: theme.colors.onTertiary },
@@ -74,14 +77,16 @@ const ExpiryDatesItem = memo(({ t, units }) => {
       }
       <View style={styles.row}>
         <Text variant="labelLarge">
-          Data: {t.expiry_date && dateFromSQLiteDateOnly(t.expiry_date)}
+          {hasExpiry ? 'Data:' + t.expiry_date && dateFromSQLiteDateOnly(t.expiry_date) : 'Brak daty' }
+          
         </Text>
+        {hasExpiry && 
         <Text variant="labelLarge">
           {days > 0 ? "Dni do końca: " : "Dni po terminie: "}
 
           {days}
         </Text>
-
+          }
        
       </View>
 

@@ -52,7 +52,7 @@ export default function ProductInfoScreen() {
 
       
       })
-     .catch(err=> console.error("DB Error", err))
+     .catch(err=> console.log("DB Error", err))
       
 
   },[itemId]);
@@ -116,14 +116,16 @@ export default function ProductInfoScreen() {
                 const days = numberOfDaysToDate(
                   dateFromSQLiteDateOnly(e.expiry_date)
                 );
+                const hasExpiry = dateFromSQLiteDateOnly(e.expiry_date) != '2000-01-01';
 
                 return (
                   <View key={i} style={styles.row}>
                     <Text variant="bodyMedium">
-                      {(e.expiry_date &&
-                        dateFromSQLiteDateOnly(e.expiry_date)) ||
-                        ""}
+                        {
+                          hasExpiry ? dateFromSQLiteDateOnly(e.expiry_date) : 'Brak daty'
+                        }
                     </Text>
+                    {hasExpiry && 
                     <Surface
                       elevation={0}
                       style={[
@@ -140,7 +142,7 @@ export default function ProductInfoScreen() {
                       ]}
                     >
                       <Text>{days}</Text>
-                    </Surface>
+                    </Surface> }
                     <Text variant="labelLarge">{e.expiry_qty}</Text>
                   </View>
                 );

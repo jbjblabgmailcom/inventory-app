@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import {Text, StyleSheet, TouchableOpacity } from 'react-native';
 
 
 export default function CustomButton({text, redirectTo}) {
@@ -20,16 +20,16 @@ export default function CustomButton({text, redirectTo}) {
 const styles = StyleSheet.create({
   button: { 
     display: 'flex',
-    flex: 1,                         // each button takes equal space
-  marginHorizontal: 3,             // space between buttons
-  height: '100%',                  // fill parent's height
+    flex: 1,                        
+  marginHorizontal: 3,            
+  height: '100%',                 
   justifyContent: 'center',
   
   alignItems: 'center',
-  backgroundColor: '#8b79bb9c',         // example
+  backgroundColor: '#8b79bb9c',       
   borderRadius: 10,
   padding: 3,
-    paddingStart:5,
+  paddingStart:5,
   
   
   

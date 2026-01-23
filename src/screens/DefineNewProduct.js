@@ -27,11 +27,11 @@ export default function DefineNewProductScreen() {
 
 
 
-//arrays from db for autocomplete
+
   const [nazwaList, setNazwaList] = useState([{p_name: ""}]);
   const [categoriesList, setCategoriesList] = useState([{p_category: ""}]);
 
-  //dane w formularzu
+
   const [id, setId] = useState(null);
   const [pname, setPName] = useState("");
   const [bcode, setBCode] = useState("");
@@ -49,7 +49,7 @@ export default function DefineNewProductScreen() {
     itemId = route.params.itemId;
   }
 
-  // set barcode value on scan
+
 
   useEffect(()=>{
     setBCode(barCodeValue);
@@ -58,35 +58,34 @@ export default function DefineNewProductScreen() {
     .then(result => { 
  
     if(result.product) {
-      console.log("znaleziono", result.product);
+    
       const foundItem = result.product;
       populateForm(foundItem);
 
     } else if (!result.product) {
-      console.log("NIE ZNALEZIONO produktu z TAKIm KODem");
+     
     }
     })
     .catch(err => console.log("DB Error", err));
   },[barCodeValue]);
 
-  //fetch initial info from DB
+
 
   useEffect(() => {
     fetchNamesFromDB()
     .then(result => { setNazwaList(result)
-    console.log("Nazwa list", nazwaList);
+   
     })
-    .catch(err=> console.error("DB Error", err));
+    .catch(err=> console.log("DB Error", err));
     
   },[]);
 
   useEffect(() => {
     fetchCategoriesFromDB()
     .then(result => { setCategoriesList(result);
-     console.log(result);
-     console.log("Categories list", categoriesList);
+    
     })
-    .catch(err=> console.error("DB Error", err));
+    .catch(err=> console.log("DB Error", err));
     
   },[]);
 
@@ -95,17 +94,15 @@ export default function DefineNewProductScreen() {
           return;
         }
         
-        console.log('ITEM ID', itemId);
+     
         
         fetchSingleProductByIDFromDB(itemId)
         .then(result => {
-         
           const productData = result;
-          console.log("product data", productData);
           populateForm(productData);
   
         })
-        .catch(err=> console.error("DB Error", err))
+        .catch(err=> console.log("DB Error", err))
         
   
     },[itemId]);
@@ -113,35 +110,34 @@ export default function DefineNewProductScreen() {
  const onToggleSwitch = () => {
   (useExpiry === 1) ? setUseExpiry(0) : null;
   (useExpiry === 0) ? setUseExpiry(1) : null;
-  console.log(useExpiry);
+ 
  };
 
 
 const handleSelectionCategory = (option) => {
     setCategory_value(option.p_category);
-    console.log('Selected:', option.label);
+   
   };
 
   const handleTextChangeCategory = (text) => {
     setCategory_value(text);
-    console.log('User entered:', text);
+   
   };
 
   const handleSelectionName = (option) => {
     setPName(option.p_name);
-    console.log('Selected:', option.p_name);
+  
   };
 
   const handleTextChangeName = (text) => {
     setPName(text);
-    console.log('User entered:', text);
+   
   };
 
 
 
   const populateForm = (productData) => {
         setId(productData.id);
-        console.log("id to populate", productData.id);
         setPName(productData.p_name);
         setCategory_value(productData.p_category);
         setBCode(productData.p_code);
@@ -196,20 +192,22 @@ const handleSelectionCategory = (option) => {
         saveNewProductInDB(newProductData)
         
         .then(insertedId => {
-          console.log(`New product created succesfuly with ID: ${insertedId}`);
-          //navigation.navigate('Moj magazyn');
           setLoading(false);
           setSuccess(true);
           setTimeout(()=>{
-            navigation.navigate('Produkty, edycja.');
-
+            if(navigation.canGoBack()) {
+              navigation.goBack();
+            } else {
+              navigation.navigate('Produkty, edycja.');
+            }
+ 
           }, 500);
         })
         .catch(error => {
           Alert.alert("Operacja nie została wykonana:", error);
         });
 
-        } //koniec if all is valid
+        } 
 
     
 

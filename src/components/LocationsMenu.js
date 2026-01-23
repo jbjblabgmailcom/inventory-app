@@ -1,6 +1,6 @@
 import React, { useMemo, forwardRef } from 'react';
 
-import BottomSheet from '@gorhom/bottom-sheet'; // Import BottomSheetView
+import BottomSheet from '@gorhom/bottom-sheet'; 
 import { useTheme, Portal } from 'react-native-paper';
 
 import { View } from "react-native";
@@ -23,7 +23,7 @@ const LocationsMenu = forwardRef(({content, setIsSheetOpen}, ref) => {
           enablePanDownToClose={true}
           onChange={(index) => {
             if (index === -1) {
-              console.log("Sheet is now CLOSED");
+            
               setIsSheetOpen(false);
             }
           }}

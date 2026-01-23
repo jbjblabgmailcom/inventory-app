@@ -55,8 +55,6 @@ const FilterForm = ({ filters, setFilters, default_filters, setTransactions, set
 
           
      useEffect(()=> {
-      console.log("FROM DATE", draft.fromDate);
-      console.log("TO DATE", draft.toDate);
       if(draft.fromDate > draft.toDate) {
         setInvalidDateSet(true);
         Alert.alert("Data OD musi być wcześniej niż DO");

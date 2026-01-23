@@ -1,4 +1,4 @@
-import React, {useState, useEffect} from "react";
+import React, {useState, useEffect, useRef, useCallback} from "react";
 import { View, StyleSheet, FlatList, TouchableOpacity} from "react-native";
 import {
   Text,
@@ -6,7 +6,6 @@ import {
   Button,
   useTheme,
   IconButton,
-  Surface
 } from "react-native-paper";
 import { DatePickerComponent } from "../../components/DatePickerComponent";
 
@@ -17,7 +16,7 @@ import ModalCloseButton from "../ModalCloseButton";
 import {noExpiryDate} from '../../consts/staticDate';
 import { fetchProductsFromDB } from "../../dbQuerys/newProductDB";
 import SearchComponent from "../SearchComponent";
-
+import InfiniteScrollFlatList from "../InfiniteScrollFlatList";
 
 
 export const AddProductByNameModal = ({
@@ -41,31 +40,90 @@ export const AddProductByNameModal = ({
 
 }) => {
 
+    const DEFAULT_FILTERS = {
+          category: "",
+          limit: 20,
+          cursor: null, 
+        };
+    
+      const [filters, setFilters] = useState(DEFAULT_FILTERS);
+      const loadingRef = useRef(false);
+
   
   const theme = useTheme();
   const [inputSearchValue, setInputSearchValue] = useState("");
   const [loadingProducts, setLoadingProducts] = useState(false);
   const [productList, setProductList] = useState({});
-  const [trigger, setTrigger] = useState(false);
+  const [cursor, setCursor] = useState(null);
+  const [hasMore, setHasMore] = useState(true);
+ 
   const [productForAdd, setProductForAdd] = useState({});
 
-    useEffect (()=> {
-     // setLoadingProducts(true);
-         fetchProductsFromDB(inputSearchValue)
-      .then(
-        result => 
-          {setProductList(result._array);
-          //  setLoadingProducts(false);
-        console.log('Lista produktów z bazy w modalu', result._array);
-          }
-      )
-      .catch(err => console.error("DB error", err));
-  
-    },[trigger]);
+    useEffect(() => {
+        setProductList([]); // Clear immediately on filter change
+        setCursor(null);
+        setHasMore(true);
+        loadMore(filters, true);
+      }, [filters]);
+
+
+    const loadMore = useCallback(
+      async (customFilters = filters, reset = false) => {
+        if (loadingRef.current) return;
+    
+        if (!hasMore && !reset) return;
+    
+        loadingRef.current = true;
+        setLoadingProducts(true);
+    
+        // reset pagination safely
+        if (reset) {
+          setCursor(null);
+          setHasMore(true);
+        }
+    
+        try {
+          const res = await fetchProductsFromDB(inputSearchValue, {
+            ...customFilters,
+            cursor: reset ? null : cursor,
+          });
+    
+          const fetchedData = res.data || [];
+    
+          setProductList(prev => {
+            if (reset) return fetchedData;
+    
+            const existingIds = new Set(prev.map(p => p.id));
+            const uniqueNew = fetchedData.filter(p => !existingIds.has(p.id));
+    
+            return [...prev, ...uniqueNew];
+          });
+    
+          setCursor(res.nextCursor);
+          setHasMore(res.hasMore);
+    
+        } catch (err) {
+          console.error('Failed to load products:', err);
+        } finally {
+          loadingRef.current = false;
+          setLoadingProducts(false);
+        }
+      },
+      [cursor, hasMore, filters, inputSearchValue]
+    );
 
     const handleEndEditing = () =>{
-      setTrigger(!trigger);
+      loadMore(filters, true);
     }
+
+
+  useEffect(()=> {
+  
+      handleEndEditing();
+  
+    
+  },[inputSearchValue]);
+
 
   useEffect(()=>{
       if(productForAdd?.useexpiry === 0) {
@@ -78,46 +136,9 @@ export const AddProductByNameModal = ({
   useEffect(()=>{
     setLocationOther(locationGlobal);
   }, [locationGlobal])
-    
 
-  return (
-    <>
-      <DatePickerComponent
-        locale="pl"
-        mode="single"
-        visible={modalOpen}
-        onDismiss={() => setModalOpen(false)}
-        date={expiryDate || new Date()}
-        onConfirm={onConfirm}
-      />
-      <View style={styles.onelinewrapperBaseline}>
-        <Text variant="bodyLarge" style={{ marginTop: 10 }}>
-          Dodajesz do lokalizacji:{" "}
-        </Text>
-        <Text>{locationOther?.loc_name}</Text> 
-      </View>
-
-      <View style={styles.onelinewrapper}>
-        {!productForAdd && <Text>Produkt: {productForAdd?.p_name}</Text>}
-      </View>
-
-                
-                        <SearchComponent
-                        inputValue={inputSearchValue}
-                        setInputValue={setInputSearchValue}
-                        handleEndEditing={handleEndEditing}
-                        loadingProducts={false}
-                        />
-
-                        <View style={styles.flatListWrapperModal}>
-          <FlatList
-            showsVerticalScrollIndicator={false}
-            showsHorizontalScrollIndicator={false}
-            style={styles.list}
-            contentContainerStyle={styles.flatListContent}
-            data={productList}
-            keyExtractor={(item) => item.id.toString()}
-            renderItem={({item}) => {
+  const ProductItem = React.memo(
+    ({item}) => {
               const isSelected = productForAdd?.id === item.id;
               
 
@@ -156,9 +177,55 @@ export const AddProductByNameModal = ({
                   
                 </TouchableOpacity>
               );
-            }}
-          />
-        </View>
+            }
+  );
+
+  const renderItem = useCallback(
+    ({ item }) => <ProductItem item={item} />,
+    [productForAdd]
+  );
+    
+
+  return (
+    <>
+      <DatePickerComponent
+        locale="pl"
+        mode="single"
+        visible={modalOpen}
+        onDismiss={() => setModalOpen(false)}
+        date={expiryDate || new Date()}
+        onConfirm={onConfirm}
+      />
+      <View style={styles.onelinewrapperBaseline}>
+        <Text variant="bodyLarge" style={{ marginTop: 10 }}>
+          Dodajesz do lokalizacji:{" "}
+        </Text>
+        <Text>{locationOther?.loc_name}</Text> 
+      </View>
+
+      <View style={styles.onelinewrapper}>
+        {!productForAdd && <Text>Produkt: {productForAdd?.p_name}</Text>}
+      </View>
+
+                
+                        <SearchComponent
+                        inputValue={inputSearchValue}
+                        setInputValue={setInputSearchValue}
+                        handleEndEditing={handleEndEditing}
+                        loadingProducts={false}
+                        />
+
+                        <View style={styles.flatListWrapperModal}>
+           <InfiniteScrollFlatList 
+                style={styles.list}
+                renderItem={renderItem}
+                loadMore={loadMore}
+                filters={filters}
+                data={productList}
+                loading={loadingProducts}
+               />
+
+              </View>
 
                
 

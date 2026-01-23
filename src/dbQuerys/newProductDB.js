@@ -1,6 +1,6 @@
 import { Alert } from 'react-native';
 import { dateToSQLite, dateToSQLiteCurrent } from '../utils/ValidateFunctions';
-import { noExpiryDate } from '../consts/staticDate';
+
 
 import { db } from '../db/db';
 
@@ -13,7 +13,7 @@ export const fetchNamesFromDB = () => {
             `SELECT DISTINCT p_name FROM products`,
             [],
             (_, results) => {
-              const rows = results.rows;  // array of objects
+              const rows = results.rows; 
               resolve(rows);
             },
             (_, error) => {
@@ -45,7 +45,7 @@ export const fetchCategoriesFromDB = () => {
             `SELECT DISTINCT p_category FROM products`,
             [],
             (_, results) => {
-              const rows = results.rows;  // array of objects
+              const rows = results.rows;
               resolve(rows);
             },
             (_, error) => {
@@ -77,24 +77,24 @@ export const fetchLocationsFromDB = () => {
             `SELECT DISTINCT loc_name FROM location_names`,
             [],
             (_, results) => {
-              const rows = results.rows;  // array of objects
+              const rows = results.rows;  
               
               resolve(rows);
             },
             (_, error) => {
-              console.log("Error fetching distinct locations:", error);
+              
               reject(error);
               return true;
             }
           );
         },
         error => {
-          console.log("DB Transaction error:", error);
+         
           reject(error);
         }
       );
     } catch (e) {
-      console.log("Unexpected DB error:", e);
+     
       reject(e);
     }
   });
@@ -102,17 +102,10 @@ export const fetchLocationsFromDB = () => {
 
 
 
-export const fetchProductsFromDB = (searchText, filters) => {
+export const fetchProductsFromDB = (searchText, filters, locationName) => {
   const category = filters.category || '';
   const limit = Number(filters.limit) || 10;
   const cursor = filters.cursor ?? null;
-
-  console.log('[DB] fetchProductsFromDB called');
-  console.log('[DB] searchText:', searchText);
-  console.log('[DB] filters:', filters);
-  console.log('[DB] category:', category);
-  console.log('[DB] limit:', limit);
-  console.log('[DB] cursor:', cursor);
 
   return new Promise((resolve, reject) => {
     try {
@@ -133,33 +126,23 @@ export const fetchProductsFromDB = (searchText, filters) => {
         query += ` ORDER BY id DESC LIMIT ?`;
         params.push(limit + 1);
 
-        // 🔎 LOG FINAL SQL
-        console.log('[DB] FINAL QUERY:', query);
-        console.log('[DB] PARAMS:', params);
+       
 
         tx.executeSql(
           query,
           params,
           (_, results) => {
-            console.log('[DB] SQL SUCCESS');
-            console.log('[DB] rows.length:', results.rows.length);
-
             const rows = [];
             for (let i = 0; i < results.rows.length; i++) {
               rows.push(results.rows.item(i));
             }
 
-            console.log('[DB] rows:', rows);
+            
 
             const hasMore = rows.length > limit;
             const data = hasMore ? rows.slice(0, limit) : rows;
 
-            console.log('[DB] data.length:', data.length);
-            console.log('[DB] hasMore:', hasMore);
-            console.log(
-              '[DB] nextCursor:',
-              data.length ? data[data.length - 1].id : null
-            );
+            
 
             resolve({
               data,
@@ -168,14 +151,14 @@ export const fetchProductsFromDB = (searchText, filters) => {
             });
           },
           (_, error) => {
-            console.error('[DB] SQL ERROR:', error);
+            
             reject(error);
             return true;
           }
         );
       });
     } catch (e) {
-      console.error('[DB] UNEXPECTED ERROR:', e);
+      console.log('[DB] UNEXPECTED ERROR:', e);
       reject(e);
     }
   });
@@ -184,7 +167,7 @@ export const fetchProductsFromDB = (searchText, filters) => {
 
 export const fetchSingleProductFromDB = (productId, locationId) => {
   return new Promise((resolve, reject) => {
-    // 1. Define the object here to ensure it persists across the transaction lifecycle
+    
     const resultObj = {
       productData: null,
       expiryDates: [],
@@ -195,11 +178,11 @@ export const fetchSingleProductFromDB = (productId, locationId) => {
     db.transaction(
       tx => {
         const sqlError = (label) => (_, err) => {
-          console.error(`❌ ${label} FAILED:`, err.message);
+          console.log(`${label} FAILED:`, err.message);
          
         };
 
-        /* 1️⃣ PRODUCT DATA */
+    
         tx.executeSql(
           `SELECT p.id AS product_id, p.p_name, p.p_category, p.p_code, p.p_desc,
                   p.p_date_created, p.p_photo, p.p_useexpiry, p.p_units, l.location_id, l.location_name, l.location_qty
@@ -216,7 +199,7 @@ export const fetchSingleProductFromDB = (productId, locationId) => {
           sqlError("PRODUCT QUERY")
         );
 
-        /* 2️⃣ EXPIRY DATES */
+        
         tx.executeSql(
           `SELECT id, expiry_date, expiry_qty FROM expiry_dates
            WHERE product_id = ? AND location_id = ? AND expiry_qty > 0
@@ -245,7 +228,7 @@ export const fetchSingleProductFromDB = (productId, locationId) => {
           sqlError("TRANSACTIONS QUERY")
         );
 
-        /* 4️⃣ OTHER LOCATIONS */
+       
         tx.executeSql(
           `SELECT location_name, SUM(location_qty) AS total_qty
            FROM locations
@@ -260,12 +243,11 @@ export const fetchSingleProductFromDB = (productId, locationId) => {
         );
       },
       err => {
-        console.error("🔥 TRANSACTION FAILED", err);
+        
         reject(err);
       },
       () => {
-        // Success! All queries finished and resultObj is populated.
-        resolve(resultObj);
+         resolve(resultObj);
       }
     );
   });
@@ -274,9 +256,7 @@ export const fetchSingleProductFromDB = (productId, locationId) => {
 export const fetchTransactionsFromDB = (productId, locationId, filters) => {
   const { type, fromDate, toDate, limit, cursor } = filters;
 
-  console.log("⚡ fetchTransactionsFromDB called with:");
-  console.log({ productId, locationId, filters });
-
+ 
   return new Promise((resolve, reject) => {
     db.transaction(
       (tx) => {
@@ -313,17 +293,14 @@ export const fetchTransactionsFromDB = (productId, locationId, filters) => {
           ORDER BY transaction_date DESC
           LIMIT ?
         `;
-        params.push(limit + 1); // fetch one extra row for hasMore
+        params.push(limit + 1); 
 
-        console.log("📝 SQL query:", sql);
-        console.log("📝 SQL params:", params);
 
         tx.executeSql(
           sql,
           params,
           (_, res) => {
-            console.log("✅ Query executed, rows found:", res.rows.length);
-
+            
             const rows = Array.from({ length: res.rows.length }, (_, i) =>
               res.rows.item(i)
             );
@@ -336,24 +313,21 @@ export const fetchTransactionsFromDB = (productId, locationId, filters) => {
                 ? transactions[transactions.length - 1].transaction_date
                 : null;
 
-            console.log("📦 transactions returned:", transactions.length);
-            console.log("➡ nextCursor:", nextCursor, "hasMore:", hasMore);
-
-            resolve({
+          resolve({
               transactions,
               hasMore,
               nextCursor,
             });
           },
           (_, err) => {
-            console.error("❌ SQL execution error:", err);
+            console.log("SQL execution error:", err);
             reject(err);
             return true;
           }
         );
       },
       (txErr) => {
-        console.error("❌ Transaction error:", txErr);
+        console.log("Transaction error:", txErr);
         reject(txErr);
       }
     );
@@ -388,7 +362,7 @@ export const fetchExpiryDatesFromDB2 = (
           params.push(cursor);
         }
 
-        // 2. Updated SQL with JOIN to 'products' table
+        
         const sql = `
           SELECT 
             e.id, 
@@ -429,14 +403,14 @@ export const fetchExpiryDatesFromDB2 = (
             resolve({ items, hasMore, nextCursor });
           },
           (_, err) => {
-            console.error("❌ SQL error:", err);
+            console.log("SQL error:", err);
             reject(err);
             return true;
           }
         );
       },
       (txErr) => {
-        console.error("❌ Transaction error:", txErr);
+        console.log("Transaction error:", txErr);
         reject(txErr);
       }
     );
@@ -450,8 +424,7 @@ export const fetchExpiryDatesFromDB = (
 ) => {
   const { fromDate, toDate, limit, cursor } = filters;
 
-  console.log("⚡ fetchExpiryDatesFromDB called with:");
-  console.log({ productId, filters });
+
 
   return new Promise((resolve, reject) => {
     db.transaction(
@@ -491,10 +464,7 @@ export const fetchExpiryDatesFromDB = (
           LIMIT ?
         `;
 
-        params.push(limit + 1); // fetch extra row for hasMore
-
-        console.log("📝 SQL:", sql);
-        console.log("📝 params:", params);
+        params.push(limit + 1);
 
         tx.executeSql(
           sql,
@@ -510,24 +480,21 @@ export const fetchExpiryDatesFromDB = (
             const nextCursor =
               items.length > 0 ? items[items.length - 1].expiry_date : null;
 
-            console.log("📦 expiry dates returned:", items);
-            console.log("➡ nextCursor:", nextCursor, "hasMore:", hasMore);
-
             resolve({
-              items, // unified list
+              items,
               hasMore,
               nextCursor,
             });
           },
           (_, err) => {
-            console.error("❌ SQL error:", err);
+            console.log("SQL error:", err);
             reject(err);
             return true;
           }
         );
       },
       (txErr) => {
-        console.error("❌ Transaction error:", txErr);
+        console.log("Transaction error:", txErr);
         reject(txErr);
       }
     );
@@ -543,13 +510,13 @@ export const fetchProductByCodefromDB = async (code, locName) => {
     try {
       db.transaction(
         tx => {
-          // Step 1: Check product exists
+         
           tx.executeSql(
             `SELECT * FROM products WHERE p_code = ?`,
             [code],
             (_, results) => {
               if (results.rows.length === 0) {
-                console.log("product not found at all");
+               
                 resolve(null);
                 return;
               }
@@ -567,7 +534,7 @@ export const fetchProductByCodefromDB = async (code, locName) => {
                 p_units: productRow.p_units
               };
 
-              // Step 2: Fetch location info (optional)
+              
               tx.executeSql(
                 `
                 SELECT location_id, location_name, location_qty, location_last_updated
@@ -622,9 +589,7 @@ export const fetchProductByCodefromDB = async (code, locName) => {
 
 export const saveNewProductInDB = (productDetails) => {
   return new Promise((resolve, reject) => {
-    console.log("NEW PRODUCT DETAILS", productDetails);
-    
-    // 1. Destructure the product details
+   
     const { 
         id,
         pname,
@@ -672,11 +637,10 @@ ON CONFLICT(id) DO UPDATE SET
             productParams,
             (_, results) => {
               const productId = id || results.insertId; 
-              console.log(`Product ID determined: ${productId}`);
               resolve({ productId, message: "NEW Product saved successfully." });
             },
             (_, error) => {
-              console.error("Error inserting product (Step 1):", error);
+              console.log("Error inserting product (Step 1):", error);
              
               return true; 
             }
@@ -685,7 +649,7 @@ ON CONFLICT(id) DO UPDATE SET
        
         error => {
           
-          console.error("DB Transaction error (Rolled Back):", error);
+          console.log("DB Transaction error (Rolled Back):", error);
           reject(error);
         },
        
@@ -695,7 +659,7 @@ ON CONFLICT(id) DO UPDATE SET
         }
       );
     } catch (e) {
-      console.error("Unexpected DB error:", e);
+      console.log("Unexpected DB error:", e);
       reject(e);
     }
   });
@@ -706,22 +670,22 @@ ON CONFLICT(id) DO UPDATE SET
 export const fetchLocationsNamesFromDB = () => {
   return new Promise((resolve, reject) => {
     db.transaction(tx => {
-      // 1. First, check if the table exists in the SQLite master schema
+     
       tx.executeSql(
         "SELECT name FROM sqlite_master WHERE type='table' AND name='location_names'",
         [],
         (_, results) => {
           if (results.rows.length === 0) {
-            // Table does not exist: Resolve with empty array safely
+           
             console.log("Table 'location_names' does not exist yet. Skipping.");
             resolve([]); 
           } else {
-            // 2. Table exists: Carry on with the original query
+          
             tx.executeSql(
               `SELECT * FROM location_names`,
               [],
               (_, subResults) => {
-                resolve(subResults.rows._array || []); // Use ._array for convenience in some RN SQLite libs
+                resolve(subResults.rows._array || []); 
               },
               (_, error) => {
                 console.log("Error fetching rows:", error);
@@ -742,8 +706,6 @@ export const fetchLocationsNamesFromDB = () => {
 
 export const saveNewLocationInDB = (locationName) => {
   return new Promise((resolve, reject) => {
-    console.log("NEW Location into db goes", locationName);
-    
     
     const query = `
       INSERT INTO location_names 
@@ -760,11 +722,10 @@ export const saveNewLocationInDB = (locationName) => {
             [locationName],
             (_, results) => {
               const location_name_id = results.insertId; 
-              console.log(`Product ID determined: ${location_name_id}`);
               resolve({ location_name_id, message: "NEW location saved successfully." });
             },
             (_, error) => {
-             // console.error("Error inserting new location:", error);
+            
              Alert.alert("Nazwa lokalizacji nie może się powtarzać.");
               return true; 
             }
@@ -772,8 +733,8 @@ export const saveNewLocationInDB = (locationName) => {
         },
         
         error => {
-          //console.error("DB Transaction error (Rolled Back):", error);
-          //reject(error);
+          console.log("DB Transaction error (Rolled Back):", error);
+          reject(error);
         },
        
         () => {
@@ -782,13 +743,12 @@ export const saveNewLocationInDB = (locationName) => {
         }
       );
     } catch (e) {
-      console.error("Unexpected DB error:", e);
+      console.log("Unexpected DB error:", e);
       reject(e);
     }
   });
 };
 
- 
 export const fetchProductByLocationfromDB = (loc_name, searchText = '') => {
 
   
@@ -834,51 +794,151 @@ AND products.p_name LIKE ?
       reject(e);
     }
   });
+}; 
+
+export const fetchProductByLocationfromDB2 = (
+  loc_name,
+  searchText = '',
+  filters = {}
+) => {
+  const {
+    category = '',
+    qtyFrom = '',
+    qtyTo = '',
+    useExpiry = 'all',
+    expiryStatus = '',
+    soonDays = 7,
+    limit = 20,
+    cursor = null,
+  } = filters;
+
+  return new Promise((resolve, reject) => {
+    try {
+      db.transaction(tx => {
+        const whereClauses = [
+          'locations.location_name = ?',
+          'products.p_name LIKE ?',
+        ];
+
+        const joinClauses = [
+          'JOIN products ON locations.product_id = products.id',
+        ];
+
+        const params = [loc_name, `%${searchText}%`];
+
+        if (category) {
+          whereClauses.push('products.p_category = ?');
+          params.push(category);
+        }
+
+        if (qtyFrom !== '') {
+          whereClauses.push('locations.location_qty >= ?');
+          params.push(qtyFrom);
+        }
+
+        if (qtyTo !== '') {
+          whereClauses.push('locations.location_qty <= ?');
+          params.push(qtyTo);
+        }
+
+       
+        if (!expiryStatus) {
+          if (useExpiry === 'yes') {
+            whereClauses.push('products.p_useexpiry = 1');
+          } else if (useExpiry === 'no') {
+            whereClauses.push('products.p_useexpiry = 0');
+          }
+        }
+
+        
+        if (expiryStatus) {
+        
+          whereClauses.push('products.p_useexpiry = 1');
+
+          joinClauses.push(`
+            JOIN expiry_dates ed
+              ON ed.product_id = products.id
+             AND ed.location_id = locations.location_id
+          `);
+
+          if (expiryStatus === 'expired') {
+            whereClauses.push(`date(ed.expiry_date) < date('now')`);
+          } else if (expiryStatus === 'valid') {
+            whereClauses.push(`date(ed.expiry_date) >= date('now')`);
+          } else if (expiryStatus === 'soon') {
+            whereClauses.push(
+              `date(ed.expiry_date) BETWEEN date('now') AND date('now', '+' || ? || ' day')`
+            );
+            params.push(soonDays);
+          }
+        }
+
+      
+        if (cursor) {
+          whereClauses.push('locations.location_id > ?');
+          params.push(cursor);
+        }
+
+        const query = `
+          SELECT DISTINCT
+            locations.*,
+            products.id,
+            products.p_name,
+            products.p_category,
+            products.p_photo,
+            products.p_code,
+            products.p_useexpiry,
+            products.p_units
+          FROM locations
+          ${joinClauses.join('\n')}
+          WHERE ${whereClauses.join(' AND ')}
+          ORDER BY locations.location_id
+          LIMIT ?
+        `;
+
+        params.push(limit);
+
+        tx.executeSql(
+          query,
+          params,
+          (_, results) => resolve(results.rows),
+          (_, error) => {
+            console.log('Error fetching products:', error);
+            reject(error);
+            return true;
+          }
+        );
+      }, error => reject(error));
+    } catch (e) {
+      reject(e);
+    }
+  });
 };
 
 
 export async function insertProductIntoLocationInDB(
   productId,
   addQty,
-  expiryDate = dateToSQLite(expiryDate), // "YYYY-MM-DD"
+  expiryDate = dateToSQLite(expiryDate), 
   locName,
   locationId = null,
   notes = "Stock IN"
 ) {
-  console.log("[DB][INSERT] called", {
-    productId,
-    addQty,
-    expiryDate,
-    locName,
-    locationId,
-    notes,
-  });
+ 
 
   return new Promise((resolve, reject) => {
     const now = dateToSQLiteCurrent(new Date());
-    console.log("[DB][TIME]", now);
-
+    
     db.transaction((tx) => {
       const handleExpiryInsert = (locId) => {
-        console.log("[DB][EXPIRY] handleExpiryInsert", {
-          locId,
-          productId,
-          expiryDate,
-          addQty,
-        });
-
+       
         tx.executeSql(
           `SELECT id, expiry_qty
            FROM expiry_dates
            WHERE product_id = ? AND location_id = ? AND expiry_date = ?`,
           [productId, locId, expiryDate],
           (_, res) => {
-            console.log("[DB][EXPIRY] select result", {
-              rows: res.rows.length,
-            });
-
-            if (res.rows.length === 0) {
-              console.log("[DB][EXPIRY] inserting new batch");
+           if (res.rows.length === 0) {
               tx.executeSql(
                 `INSERT INTO expiry_dates
                  (product_id, location_id, expiry_date, expiry_qty)
@@ -887,10 +947,7 @@ export async function insertProductIntoLocationInDB(
               );
             } else {
               const row = res.rows.item(0);
-              console.log("[DB][EXPIRY] updating batch", {
-                oldQty: row.expiry_qty,
-                newQty: row.expiry_qty + addQty,
-              });
+            
 
               tx.executeSql(
                 `UPDATE expiry_dates
@@ -900,7 +957,7 @@ export async function insertProductIntoLocationInDB(
               );
             }
 
-            console.log("[DB][TX] logging transaction");
+           
 
             tx.executeSql(
               `INSERT INTO transactions
@@ -912,32 +969,25 @@ export async function insertProductIntoLocationInDB(
                 resolve(true);
               },
               (_, err) => {
-                console.error("[DB][ERROR] transaction log failed", err);
+                console.log("[DB][ERROR] transaction log failed", err);
                 reject(err);
                 return true;
               }
             );
           },
           (_, err) => {
-            console.error("[DB][ERROR] expiry select failed", err);
+            console.log("[DB][ERROR] expiry select failed", err);
             reject(err);
             return true;
           }
         );
       };
 
-      // 🔹 Case 1: explicit locationId
+     
       if (locationId) {
-        console.log("[DB][LOCATION] using provided locationId", locationId);
         handleExpiryInsert(locationId);
         return;
       }
-
-      // 🔹 Case 2 & 3: resolve by product + location name
-      console.log("[DB][LOCATION] resolving by name", {
-        productId,
-        locName,
-      });
 
       tx.executeSql(
         `SELECT location_id FROM locations
@@ -967,7 +1017,7 @@ export async function insertProductIntoLocationInDB(
                 handleExpiryInsert(result.insertId);
               },
               (_, err) => {
-                console.error("[DB][ERROR] location insert failed", err);
+                console.log("[DB][ERROR] location insert failed", err);
                 reject(err);
                 return true;
               }
@@ -975,7 +1025,7 @@ export async function insertProductIntoLocationInDB(
           }
         },
         (_, err) => {
-          console.error("[DB][ERROR] location resolve failed", err);
+          console.log("[DB][ERROR] location resolve failed", err);
           reject(err);
           return true;
         }
@@ -1038,7 +1088,7 @@ export const removeProductFromLocation = (data) => {
   return new Promise((resolve, reject) => {
     db.transaction(tx => {
 
-      // 1️⃣ Total available stock
+     
       tx.executeSql(
         `SELECT SUM(expiry_qty) AS total
          FROM expiry_dates
@@ -1057,7 +1107,7 @@ export const removeProductFromLocation = (data) => {
             return;
           }
 
-          // 2️⃣ FIFO expiry rows
+          // FIFO expiry rows
           tx.executeSql(
             `SELECT id, expiry_qty
              FROM expiry_dates
@@ -1094,7 +1144,7 @@ export const removeProductFromLocation = (data) => {
                 }
               }
 
-              // 3️⃣ Read final qty AFTER triggers ran
+         
               tx.executeSql(
                 `SELECT location_qty
                  FROM locations

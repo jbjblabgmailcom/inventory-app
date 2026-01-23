@@ -9,7 +9,7 @@ const [counter, setCounter] = useState(1);
 const changeCounter = (param) => {
   setCounter((prev) => {
     if (param === "inc") return prev + 1;
-    if (param === "dec") return Math.max(0, prev - 1); // optional guard
+    if (param === "dec") return Math.max(0, prev - 1);
     return prev;
   });
 };

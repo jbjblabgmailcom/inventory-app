@@ -4,7 +4,7 @@ import { Text, Portal, Modal, useTheme } from 'react-native-paper';
 
 import { fetchExpiryDatesFromDB2 } from '../dbQuerys/newProductDB';
 
-import { useRoute } from '@react-navigation/native';
+
 import FilterForm from '../components/FilterForm';
 import Animated, {
   useAnimatedStyle,
@@ -15,15 +15,8 @@ import Animated, {
 import ExpiryDatesList from "../components/ExpiryDatesInfoScreen/ExpiryDatesFlatList";
 
 
-
-
 export default function ExpiryDatesAllScreen() {
-
-  
-  //const route = useRoute();
-
-//const {itemId, locId, pName, pCode, pQty, dateCreated, locName, useExpiry, units} = route.params
- // const [infoExpiry, setInfoExpiry] = useState({itemId, locId, pName, pCode, pQty, dateCreated, locName, useExpiry, units});
+ 
 
 const DEFAULT_EXPIRY_FILTERS = {
   fromDate: null,
@@ -109,7 +102,7 @@ useEffect(() => {
         setCursor(res.nextCursor);
         setHasMore(res.hasMore);
       } catch (err) {
-        console.error("Failed to load expiryDates:", err);
+        console.log("Failed to load expiryDates:", err);
       } finally {
         setLoading(false);
       }

@@ -1,4 +1,4 @@
-import React, { useRef, useState } from 'react';
+import React, { useRef, useState, useEffect} from 'react';
 import { View, StyleSheet, Dimensions } from 'react-native';
 import { Camera, CameraType } from 'react-native-camera-kit';
 
@@ -10,13 +10,13 @@ export default function ScannerFrame({
   onBarcodeRead,
   frameWidth = SCREEN_WIDTH * 0.9,
   frameHeight,
-  active = true   // <-- new prop
+  active = true   
 }) {
   const cameraRef = useRef(null);
   const [cameraActive, setCameraActive] = useState(active);
 
-  // Update camera activation when modal opens/closes
-  React.useEffect(() => {
+  
+  useEffect(() => {
     setCameraActive(active);
   }, [active]);
 

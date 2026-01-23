@@ -1,6 +1,6 @@
 import React from 'react';
-import {TextInput, ActivityIndicator, Text, Surface} from 'react-native-paper';
-import { StyleSheet, View } from 'react-native';
+import {TextInput} from 'react-native-paper';
+import { StyleSheet} from 'react-native';
 import { validateName } from '../utils/ValidateFunctions';
 
 
@@ -24,8 +24,7 @@ export default function SearchComponent({handleEndEditing, inputValue, setInputV
                   icon="close"
                   onPress={() => {
                     setInputValue("");
-                    handleEndEditing();
-                    }}
+                     }}
                 />
               ) : null
             }
@@ -49,7 +48,7 @@ const styles = StyleSheet.create({
 
     textinput: {
       marginHorizontal: 5,
-      marginVertical: 5,
+     
       width: '100%',      
     },
 });

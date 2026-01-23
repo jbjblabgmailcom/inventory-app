@@ -18,7 +18,7 @@ export const runMigrations = (db) => {
         const targetVersion = index + 1;
 
         if (currentVersion < targetVersion) {
-          console.log(`⬆ Migrating DB to v${targetVersion}`);
+          console.log(`Migrating DB to v${targetVersion}`);
           migration(tx);
           tx.executeSql(`PRAGMA user_version = ${targetVersion};`);
         }

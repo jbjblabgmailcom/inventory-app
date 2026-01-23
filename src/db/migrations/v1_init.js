@@ -1,5 +1,5 @@
 export const v1_init = (tx) => {
-  // Required for SQLite
+  
   tx.executeSql(`PRAGMA foreign_keys = ON;`);
 
   tx.executeSql(`
@@ -43,7 +43,7 @@ export const v1_init = (tx) => {
     ON expiry_dates (product_id, location_id, expiry_date);
   `);
 
-  // 🔄 Triggers (safe to create once)
+ 
   tx.executeSql(`
     CREATE TRIGGER IF NOT EXISTS trg_expiry_insert
     AFTER INSERT ON expiry_dates

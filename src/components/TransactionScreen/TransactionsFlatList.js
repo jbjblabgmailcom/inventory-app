@@ -49,7 +49,7 @@ const TransactionItem = memo(({ t, units }) => {
   );
 });
 
-// 2. The Main List Component
+
 const TransactionList = ({ transactions, loadMore, loading, filters, units }) => {
   const renderItem = useCallback(
     ({ item }) => <TransactionItem t={item} units={units} />,
@@ -82,9 +82,9 @@ const TransactionList = ({ transactions, loadMore, loading, filters, units }) =>
 
 const styles = StyleSheet.create({
   list: {
-    //  height: screenHeight * 0.55,
+   
     flex: 1,
-    // minHeight: 300,
+   
   },
   row: {
     flexDirection: "row",

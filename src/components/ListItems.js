@@ -1,8 +1,9 @@
 import React, {useEffect, useState, useCallback} from 'react';
-import {Text, Surface, IconButton, Portal, Modal, Menu, useTheme, ActivityIndicator} from 'react-native-paper';
+import {Text, Surface, IconButton, Portal, Modal, Menu, useTheme} from 'react-native-paper';
 import { useNavigation } from '@react-navigation/native';
 import { FlatList, TouchableOpacity, View, StyleSheet, Image } from 'react-native';
 import { deleteProductById } from '../dbQuerys/newProductDB';
+import InfiniteScrollFlatList from './InfiniteScrollFlatList';
 
 
 
@@ -174,25 +175,14 @@ export default function ListItems(props) {
         </View>
       )}
 
-    
-        <FlatList
-          contentContainerStyle={{ flexGrow: 1, paddingBottom: 110 }}
-          showsHorizontalScrollIndicator={false}
-          showsVerticalScrollIndicator={false}
-     
-          style={styles.list}
-          data={dbData}
-          keyExtractor={item => item.id.toString()}
-          renderItem={renderItem}
-          onEndReached={() => {
-            if (!loadingProducts) {
-              loadMore(filters, false);
-            }
-          }}
-          ListEmptyComponent={() => ( <Text style={styles.emptyText}>Brak transakcji</Text> )}
-          onEndReachedThreshold={0.5}
-          removeClippedSubviews
-        />
+      <InfiniteScrollFlatList 
+      renderItem={renderItem}
+      loadMore={loadMore}
+      filters={filters}
+      data={dbData}
+      loading={loadingProducts}
+      
+      />
     
     </>
   );

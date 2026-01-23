@@ -27,7 +27,7 @@ const safeValue =
     ? String(value)
     : '';
 
-  // --- Map raw options safely ---
+
   const mappedOptions = useMemo(() => {
     const dataArray = options?._array || options;
 
@@ -48,7 +48,7 @@ const safeValue =
     });
   }, [options, keyName]);
 
-  // --- Safe filtering (NO crashes on numeric / mixed input) ---
+
   const filteredOptions = useMemo(() => {
     if (!safeValue) return mappedOptions;
 
@@ -59,7 +59,7 @@ const safeValue =
     );
   }, [safeValue, mappedOptions]);
 
-  // --- Handlers ---
+
   const handleSelect = (option) => {
     onChangeText?.(option.label);
     setIsMenuVisible(false);
@@ -100,7 +100,7 @@ const safeValue =
           <TextInput
             label={label}
             mode={mode}
-            value={safeValue} // ✅ always string
+            value={safeValue}
             onChangeText={handleInputChange}
             error={error}
             style={styles.textInput}

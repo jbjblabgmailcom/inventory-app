@@ -78,7 +78,7 @@ useEffect(() => {
 
   const loadMore = useCallback(
     async (customFilters = filters, reset = false) => {
-      if (loading) return; // Prevent multiple simultaneous calls
+      if (loading) return;
       if (!hasMore && !reset) return;
 
       setLoading(true);
@@ -92,10 +92,10 @@ useEffect(() => {
         setTransactions((prev) => {
           const newData = res.transactions;
           if (reset) {
-            return newData; // Completely replace if filtering/resetting
+            return newData;
           }
 
-          // Filter out any duplicates that might already exist in 'prev'
+          
           const existingIds = new Set(prev.map((t) => t.transaction_id));
           const uniqueNewData = newData.filter(
             (t) => !existingIds.has(t.transaction_id)
@@ -107,7 +107,7 @@ useEffect(() => {
         setCursor(res.nextCursor);
         setHasMore(res.hasMore);
       } catch (err) {
-        console.error("Failed to load transactions:", err);
+        console.log("Failed to load transactions:", err);
       } finally {
         setLoading(false);
       }

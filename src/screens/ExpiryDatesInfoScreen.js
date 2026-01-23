@@ -38,7 +38,7 @@ const [filters, setFilters] = useState(DEFAULT_EXPIRY_FILTERS);
 
 
 useEffect(() => {
-  setExpiryDates([]); // Clear immediately on filter change
+  setExpiryDates([]); 
   setCursor(null);
   setHasMore(true);
   loadMore(filters, true);
@@ -75,12 +75,7 @@ useEffect(() => {
         setModalVisible(false);
     }
 
-  useEffect(()=>{
-    console.log("EXPIRY", expiryDates);
-  },[expiryDates]);
-
-
-  const loadMore = useCallback(
+   const loadMore = useCallback(
     async (customFilters = filters, reset = false) => {
       if (loading) return; 
       if (!hasMore && !reset) return;
@@ -96,10 +91,10 @@ useEffect(() => {
         setExpiryDates((prev) => {
           const newData = res.items;
           if (reset) {
-            return newData; // Completely replace if filtering/resetting
+            return newData; 
           }
 
-          // Filter out any duplicates that might already exist in 'prev'
+        
           const existingIds = new Set(prev.map((ex) => ex.id));
           const uniqueNewData = newData.filter(
             (ex) => !existingIds.has(ex.id)
@@ -111,7 +106,7 @@ useEffect(() => {
         setCursor(res.nextCursor);
         setHasMore(res.hasMore);
       } catch (err) {
-        console.error("Failed to load expiryDates:", err);
+        console.log("Failed to load expiryDates:", err);
       } finally {
         setLoading(false);
       }

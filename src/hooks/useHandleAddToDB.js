@@ -1,7 +1,7 @@
 import { useCallback } from "react";
 import { dateToSQLite } from "../utils/ValidateFunctions";
 import { insertProductIntoLocationInDB,
-        fetchProductByLocationfromDB
+        fetchProductByLocationfromDB,
  } from "../dbQuerys/newProductDB";
 
 

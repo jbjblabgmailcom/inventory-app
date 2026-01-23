@@ -7,20 +7,20 @@ import React, {
   useCallback
 } from "react";
 import { useRoute, useFocusEffect } from "@react-navigation/native";
-import { View, StyleSheet, Alert } from "react-native";
+import { View, StyleSheet } from "react-native";
 import {
   Portal,
   Modal,
   IconButton,
   Text,
-  Button
+  Button,
  
    } from "react-native-paper";
 import {
   fetchLocationsNamesFromDB,
   saveNewLocationInDB,
-  fetchProductByLocationfromDB,
   fetchProductByCodefromDB,
+  fetchProductByLocationfromDB2,
 } from "../dbQuerys/newProductDB";
 import {
   validateName,
@@ -99,6 +99,85 @@ const LocationsScreen = () => {
   const theme = useTheme();
 
   const anim = useSharedValue(0);
+
+    const DEFAULT_FILTERS = {
+          category: '',
+          qtyFrom: '',
+          qtyTo: '',
+          useExpiry: 'all',
+          limit:  20,
+          cursor: null,
+        };
+    
+      const [filters, setFilters] = useState(DEFAULT_FILTERS);
+      const loadingRef = useRef(false);
+
+      const [cursor, setCursor] = useState(null);
+      const [hasMore, setHasMore] = useState(true);
+
+        const loadMore = useCallback(
+        async (customFilters = filters, reset = false) => {
+          if (loadingRef.current) return;
+      
+          if (!hasMore && !reset) return;
+      
+          loadingRef.current = true;
+          setLoadingProducts(true);
+      
+          // reset pagination safely
+          if (reset) {
+            setCursor(null);
+            setHasMore(true);
+          }
+      
+          try {
+            if(locationGlobal && Object.keys(locationGlobal).length != 0) {
+             const res = await fetchProductByLocationfromDB2(locationGlobal?.loc_name, inputValue, {
+              ...customFilters,
+              cursor: reset ? null : cursor,
+            });
+      
+            const fetchedData = res._array || [];
+           
+            setProductList(prev => {
+              if (reset) return fetchedData;
+      
+              const existingIds = new Set(prev.map(p => p.id));
+              const uniqueNew = fetchedData.filter(p => !existingIds.has(p.id));
+      
+              return [...prev, ...uniqueNew];
+            });
+      
+            setCursor(res.nextCursor);
+            setHasMore(res.hasMore);
+            }
+      
+          } catch (err) {
+          } finally {
+            loadingRef.current = false;
+            setLoadingProducts(false);
+          }
+        },
+        [cursor, hasMore, filters, inputValue, locationGlobal]
+      );
+      
+      
+        const handleEndEditing = () => {
+                loadMore(filters, true);
+        };
+
+          useEffect(()=> {
+          
+              handleEndEditing();
+          
+          },[inputValue]);
+  
+    useEffect(() => {
+        setProductList([]); // Clear immediately on filter change
+        setCursor(null);
+        setHasMore(true);
+        loadMore(filters, true);
+      }, [filters]);
   
       useEffect(() => {
         anim.value = withTiming(modalVisible ? 1 : 0, {
@@ -223,20 +302,7 @@ useEffect(() => {
 
   useFocusEffect(
     useCallback(() => {
-      if(locationGlobal && Object.keys(locationGlobal).length != 0) {
-        setLoadingProducts(true);
-        fetchProductByLocationfromDB(locationGlobal?.loc_name, inputValue)
-      .then((result) => {
-        setProductList(result._array);
-        setLoadingProducts(false);
-      })
-      .catch((error) => console.log("ERROR fetching products by location", error));
-    } else {
-         
-      
-    }
-
-      
+      handleEndEditing();
     }, [locationGlobal, onRemove])
   );
 
@@ -276,15 +342,12 @@ useEffect(() => {
    
       fetchLocationsNamesFromDB()
       .then((result) => {
-        console.log("LOKALIZACJE Z BAZY", result);
         setLocationsList(result);
-        console.log("Lista lokalizacji z bazy", result);
         if(result.length === 0) {
               setModalType('addLocation');
               setModalVisible(true);
         }
 
-        
       })
       .catch((err) => console.log("DB error", err));
       
@@ -298,8 +361,7 @@ useEffect(() => {
     if (validateName(param)) {
       saveNewLocationInDB(param)
         .then((result) => {
-          console.log("new location save at id", result.location_name_id);
-          setLocationSaved(!locationSaved);
+         setLocationSaved(!locationSaved);
         })
         .catch((error) => {
           console.log(error);
@@ -435,22 +497,24 @@ useEffect(() => {
   
 
   <>
-      <View style={{ paddingBottom: 150, paddingTop: 10 }}>
-        <View style={styles.container}>
-          <View style={styles.onelinewrapper}>
-            
+      <View style={{flex: 1 }}>
             <ListItemsByLocation
               dbData={productList}
-              onRemove={onRemove}
-              setOnRemove={setOnRemove}
               addMoreProduct={addMoreProduct}
               addProductToLocation={addProductToLocation}
               inputValue={inputValue}
               setInputValue={setInputValue}
               loadingProducts={loadingProducts}
+              handleEndEditing={handleEndEditing}
+              filters={filters}
+              setFilters={setFilters}
+              DEFAULT_FILTERS={DEFAULT_FILTERS}
+              setProductList={setProductList}
+              setCursor={setCursor}
+              setHasMore={setHasMore}
+              loadMore={loadMore}
             />
-          </View>
-        </View>
+        
       </View>
 
       <LocationsMenu
@@ -467,6 +531,7 @@ useEffect(() => {
         }
         setIsSheetOpen={setIsSheetOpen}
       />
+   
       <FloatingButton
         onPress={() => {
           setModalVisible(true);
@@ -477,7 +542,9 @@ useEffect(() => {
         visibility={isSheetOpen}
         right={10}
         size={60}
+        bottom={20}
       />
+   
       <FloatingButton
         onPress={() => {
           setModalVisible(true);
@@ -486,9 +553,11 @@ useEffect(() => {
         }}
         icon="playlist-plus"
         visibility={isSheetOpen}
-        right={90}
+        right={100}
         size={60}
+        bottom={20}
       />
+         
       <FloatingButton
         onPress={() => {
           setModalVisible(true);
@@ -497,9 +566,11 @@ useEffect(() => {
         }}
         icon="qrcode-minus"
         visibility={isSheetOpen}
-        right={170}
+        right={190}
         size={60}
+        bottom={20}
       />
+    
         </> 
           }
       </>
@@ -551,6 +622,7 @@ const styles = StyleSheet.create({
     display: "flex",
     flexDirection: "row",
     justifyContent: "flex-start",
+    
   },
   onelinewrapperSpaced: {
     display: "flex",
